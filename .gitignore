@@ -99,3 +99,6 @@ CLAUDE.local.md
 # Histoire deployment
 .netlify
 .histoire
+
+/MIGRATION_GUIDE.md
+MIGRATION_GUIDE.md
