@@ -69,7 +69,7 @@ volumes:
   storage_data:
   postgres_data:
     external: true
-    name: postgres_chatvoxe_data
+    name: chatvoxe_postgres_chatvoxe_data
   redis_data:
     external: true
-    name: redis_chatvoxe_data
+    name: chatvoxe_redis_chatvoxe_data
