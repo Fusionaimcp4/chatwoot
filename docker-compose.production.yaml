@@ -44,8 +44,7 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     restart: always
-    ports:
-      - '127.0.0.1:5433:5432'
+    # No port mapping needed - containers connect via Docker network
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file: .env
