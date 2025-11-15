@@ -1,6 +1,5 @@
 services:
   base: &base
-    # For rebranded Voxe, build from local Dockerfile instead of using pre-built image
     build:
       context: .
       dockerfile: ./docker/Dockerfile
@@ -9,8 +8,7 @@ services:
         EXECJS_RUNTIME: 'Node'
         RAILS_ENV: 'production'
         RAILS_SERVE_STATIC_FILES: 'true'
-    # image: chatwoot/chatwoot:latest  # Commented out - using local build
-    env_file: .env ## Change this file for customized env variables
+    env_file: .env
     volumes:
       - storage_data:/app/storage
 
@@ -20,13 +18,13 @@ services:
       - postgres
       - redis
     ports:
-      - '127.0.0.1:3000:3000'
+      - "8083:3000"    # Rails exposed to host: Cloudflare points here
     environment:
       - NODE_ENV=production
       - RAILS_ENV=production
       - INSTALLATION_ENV=docker
     entrypoint: ["sh", "/app/docker/entrypoints/rails.sh"]
-    command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
+    command: ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
     restart: always
 
   sidekiq:
@@ -38,13 +36,12 @@ services:
       - NODE_ENV=production
       - RAILS_ENV=production
       - INSTALLATION_ENV=docker
-    command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
     restart: always
 
   postgres:
     image: pgvector/pgvector:pg16
     restart: always
-    # No port mapping needed - containers connect via Docker network
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file: .env
@@ -61,13 +58,7 @@ services:
     env_file: .env
     volumes:
       - redis_data:/data
-    # No port mapping needed - containers connect via Docker network
-
 volumes:
   storage_data:
   postgres_data:
-    external: true
-    name: chatvoxe_postgres_chatvoxe_data
   redis_data:
-    external: true
-    name: chatvoxe_redis_chatvoxe_data
