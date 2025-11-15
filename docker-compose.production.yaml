@@ -60,5 +60,8 @@ services:
       - redis_data:/data
 volumes:
   storage_data:
+    name: chatvoxe-new_storage_data
   postgres_data:
+    name: chatvoxe-new_postgres_data
   redis_data:
+    name: chatvoxe-new_redis_data
