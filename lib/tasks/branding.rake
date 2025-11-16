@@ -1,11 +1,11 @@
 namespace :voxe do
-  desc 'Update branding configuration to Voxe'
+  desc 'Update branding configuration to VoxeDesk'
   task update_branding: :environment do
-    puts 'Updating branding to Voxe...'
+    puts 'Updating branding to VoxeDesk...'
 
     branding_configs = {
-      'INSTALLATION_NAME' => 'Voxe',
-      'BRAND_NAME' => 'Voxe',
+      'INSTALLATION_NAME' => 'VoxeDesk',
+      'BRAND_NAME' => 'VoxeDesk',
       'BRAND_URL' => 'https://voxe.mcp4.ai',
       'WIDGET_BRAND_URL' => 'https://voxe.mcp4.ai',
       'TERMS_URL' => 'https://voxe.mcp4.ai/terms-of-service',
@@ -49,7 +49,7 @@ namespace :voxe do
     branding_keys.each do |key|
       config = InstallationConfig.find_by(name: key)
       value = config ? config.value : '(not set)'
-      status = value.to_s.include?('Voxe') || value.to_s.include?('voxe.mcp4.ai') ? '✓' : '✗'
+      status = value.to_s.include?('VoxeDesk') || value.to_s.include?('voxe.mcp4.ai') ? '✓' : '✗'
       puts "#{status} #{key}: #{value}"
     end
 
