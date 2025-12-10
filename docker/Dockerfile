@@ -113,13 +113,14 @@ RUN if [ "$RAILS_ENV" = "production" ]; then \
 RUN if [ -d .git ]; then git rev-parse HEAD > /app/.git_sha || echo "unknown" > /app/.git_sha; else echo "unknown" > /app/.git_sha; fi
 
 # Remove unnecessary files and ensure enterprise/ and .md files are excluded
-# Fix entrypoint script line endings (convert CRLF to LF)
+# Fix entrypoint script line endings (convert CRLF to LF) and make scripts executable
 RUN rm -rf /gems/ruby/3.4.0/cache/*.gem \
   && find /gems/ruby/3.4.0/gems/ \( -name "*.c" -o -name "*.o" \) -delete \
   && rm -rf .git \
   && find /app -name "*.md" -type f -delete \
   && rm -rf /app/enterprise 2>/dev/null || true \
-  && if [ -f /app/docker/entrypoints/rails.sh ]; then sed -i 's/\r$//' /app/docker/entrypoints/rails.sh && chmod +x /app/docker/entrypoints/rails.sh; fi
+  && find /app/docker/entrypoints -type f -name "*.sh" -exec sed -i 's/\r$//' {} \; -exec chmod +x {} \; \
+  && find /app/docker/entrypoints -type f -name "*.rb" -exec sed -i 's/\r$//' {} \; -exec chmod +x {} \;
 
 # final build stage
 FROM ruby:3.4.4-alpine3.21
