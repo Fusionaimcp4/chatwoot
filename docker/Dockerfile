@@ -74,7 +74,30 @@ RUN if [ "$RAILS_ENV" = "production" ]; then \
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm i
 
-COPY . /app
+# Copy only necessary directories, excluding enterprise/ and .md files
+COPY app/ app/
+COPY config/ config/
+COPY lib/ lib/
+COPY public/ public/
+COPY db/ db/
+COPY bin/ bin/
+COPY vendor/ vendor/
+COPY Rakefile Rakefile
+COPY config.ru config.ru
+COPY Procfile Procfile
+COPY Procfile.dev Procfile.dev
+COPY Procfile.test Procfile.test
+COPY Procfile.tunnel Procfile.tunnel
+COPY package.json package.json
+COPY pnpm-lock.yaml pnpm-lock.yaml
+COPY vite.config.ts vite.config.ts
+COPY postcss.config.js postcss.config.js
+COPY tailwind.config.js tailwind.config.js
+COPY theme/ theme/
+COPY docker/ docker/
+COPY VERSION_CW VERSION_CW
+COPY VERSION_CWCTL VERSION_CWCTL
+COPY .gitignore .gitignore
 
 # creating a log directory so that image wont fail when RAILS_LOG_TO_STDOUT is false
 # https://github.com/chatwoot/chatwoot/issues/701
@@ -89,11 +112,12 @@ RUN if [ "$RAILS_ENV" = "production" ]; then \
 # Generate .git_sha file with current commit hash
 RUN git rev-parse HEAD > /app/.git_sha
 
-# Remove unnecessary files
+# Remove unnecessary files and ensure enterprise/ and .md files are excluded
 RUN rm -rf /gems/ruby/3.4.0/cache/*.gem \
   && find /gems/ruby/3.4.0/gems/ \( -name "*.c" -o -name "*.o" \) -delete \
   && rm -rf .git \
-  && rm .gitignore
+  && find /app -name "*.md" -type f -delete \
+  && rm -rf /app/enterprise 2>/dev/null || true
 
 # final build stage
 FROM ruby:3.4.4-alpine3.21

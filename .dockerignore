@@ -15,3 +15,8 @@ vendor/bundle
 .DS_Store
 *.swp
 *~
+# Exclude Enterprise code
+enterprise/
+# Exclude all markdown documentation
+*.md
+**/*.md
