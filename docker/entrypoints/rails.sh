@@ -1,5 +1,4 @@
 #!/bin/sh
-
 set -x
 
 # Remove a potentially pre-existing server.pid for Rails.
