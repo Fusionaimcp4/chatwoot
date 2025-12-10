@@ -1,13 +1,6 @@
 services:
   base: &base
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile
-      args:
-        BUNDLE_WITHOUT: 'development:test'
-        EXECJS_RUNTIME: 'Node'
-        RAILS_ENV: 'production'
-        RAILS_SERVE_STATIC_FILES: 'true'
+    image: mcp4ai/voxedesk-selfhost:latest
     env_file: .env
     volumes:
       - storage_data:/app/storage
