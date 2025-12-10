@@ -68,9 +68,9 @@ docker compose -f docker-compose.production.yaml exec rails bundle exec rake vox
 
 Expected output:
 ```
-Updating branding to Voxe...
-  ✓ Updated INSTALLATION_NAME: 'Chatwoot' → 'Voxe'
-  ✓ Updated BRAND_NAME: 'Chatwoot' → 'Voxe'
+Updating branding to VoxeDesk...
+  ✓ Updated INSTALLATION_NAME: 'Chatwoot' → 'VoxeDesk'
+  ✓ Updated BRAND_NAME: 'Chatwoot' → 'VoxeDesk'
   ✓ Updated BRAND_URL: 'https://www.chatwoot.com' → 'https://voxe.mcp4.ai'
   ...
 
@@ -105,8 +105,8 @@ You should see:
 ```
 Current Branding Configuration:
 ==================================================
-✓ INSTALLATION_NAME: Voxe
-✓ BRAND_NAME: Voxe
+✓ INSTALLATION_NAME: VoxeDesk
+✓ BRAND_NAME: VoxeDesk
 ✓ BRAND_URL: https://voxe.mcp4.ai
 ...
 ```
@@ -117,10 +117,10 @@ Current Branding Configuration:
 
 1. Open your production URL: `https://voxe.mcp4.ai`
 2. Check:
-   - Browser tab title shows "Voxe"
-   - Login page shows Voxe logo
-   - Dashboard shows "Voxe" branding
-   - Emails show Voxe branding
+   - Browser tab title shows "VoxeDesk"
+   - Login page shows VoxeDesk logo
+   - Dashboard shows "VoxeDesk" branding
+   - Emails show VoxeDesk branding
 
 ---
 

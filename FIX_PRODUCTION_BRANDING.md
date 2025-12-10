@@ -1,7 +1,7 @@
 # Fix Production Branding Issue
 
 ## Problem
-When deploying to production using `docker-compose.production.yaml`, the branding still shows "Chatwoot" instead of "Voxe" even though `config/installation_config.yml` has been updated.
+When deploying to production using `docker-compose.production.yaml`, the branding still shows "Chatwoot" instead of "VoxeDesk" even though `config/installation_config.yml` has been updated.
 
 ## Root Cause
 The `ConfigLoader` class has a `reconcile_only_new: true` flag by default. This means:
@@ -21,8 +21,8 @@ SSH into your server and run:
 docker compose -f docker-compose.production.yaml exec rails bundle exec rails console
 
 # Update branding configs
-InstallationConfig.find_by(name: 'INSTALLATION_NAME')&.update!(value: 'Voxe')
-InstallationConfig.find_by(name: 'BRAND_NAME')&.update!(value: 'Voxe')
+InstallationConfig.find_by(name: 'INSTALLATION_NAME')&.update!(value: 'VoxeDesk')
+InstallationConfig.find_by(name: 'BRAND_NAME')&.update!(value: 'VoxeDesk')
 InstallationConfig.find_by(name: 'BRAND_URL')&.update!(value: 'https://voxe.mcp4.ai')
 InstallationConfig.find_by(name: 'WIDGET_BRAND_URL')&.update!(value: 'https://voxe.mcp4.ai')
 InstallationConfig.find_by(name: 'TERMS_URL')&.update!(value: 'https://voxe.mcp4.ai/terms-of-service')
@@ -55,8 +55,8 @@ exit
 1. Access Super Admin: `https://your-domain/super_admin`
 2. Navigate to Installation Configs
 3. Manually update each branding config:
-   - INSTALLATION_NAME → Voxe
-   - BRAND_NAME → Voxe
+   - INSTALLATION_NAME → VoxeDesk
+   - BRAND_NAME → VoxeDesk
    - BRAND_URL → https://voxe.mcp4.ai
    - etc.
 
@@ -66,11 +66,11 @@ Create `lib/tasks/branding.rake`:
 
 ```ruby
 namespace :voxe do
-  desc 'Update branding to Voxe'
+  desc 'Update branding to VoxeDesk'
   task update_branding: :environment do
     branding_configs = {
-      'INSTALLATION_NAME' => 'Voxe',
-      'BRAND_NAME' => 'Voxe',
+      'INSTALLATION_NAME' => 'VoxeDesk',
+      'BRAND_NAME' => 'VoxeDesk',
       'BRAND_URL' => 'https://voxe.mcp4.ai',
       'WIDGET_BRAND_URL' => 'https://voxe.mcp4.ai',
       'TERMS_URL' => 'https://voxe.mcp4.ai/terms-of-service',

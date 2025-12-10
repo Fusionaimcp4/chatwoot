@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Widget Test</title>
+</head>
+<body>
+    <h1>Widget Test</h1>
+    <script defer>
+      (function(d,t){
+        var BASE_URL="http://localhost:3000";
+        var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=BASE_URL+"/packs/js/sdk.js";
+        g.async=true;
+        g.defer=true;
+        g.onload=function(){
+          if(window.chatwootSDK&&window.chatwootSDK.run){
+            window.chatwootSDK.run({
+              websiteToken:'bj1ewRNgi9Hwk3a5hMtVgF3g',
+              baseUrl:BASE_URL
+            });
+          }
+        };
+        s.parentNode.insertBefore(g,s);
+      })(document,"script");
+    </script>
+</body>
+</html>
+

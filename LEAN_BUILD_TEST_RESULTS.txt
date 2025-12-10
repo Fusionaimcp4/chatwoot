@@ -1,0 +1,78 @@
+LEAN DOCKER BUILD - TEST RESULTS
+==================================
+
+Date: 2025-12-10
+Image: mcp4ai/voxedesk-selfhost:latest
+Branch: lean-docker
+
+VERIFICATION RESULTS
+====================
+
+✅ Enterprise Code Removal
+   - Enterprise folder: NOT FOUND (excluded from build)
+   - Enterprise code loading: REMOVED from config/application.rb
+   - Enterprise rake tasks: REMOVED from Rakefile
+   - Enterprise checks: DISABLED in lib/chatwoot_app.rb
+
+✅ Scheduled Jobs Configuration
+   Active Jobs (7 total):
+   1. trigger_scheduled_items_job - Every 5 minutes
+   2. trigger_imap_email_inboxes_job - Every minute
+   3. remove_stale_contact_inboxes_job - Daily at 22:30 UTC
+   4. remove_stale_redis_keys_job - Daily at 22:30 UTC
+   5. process_stale_contacts_job - Daily at 04:30 UTC
+   6. delete_accounts_job - Daily at 01:00 UTC
+   7. bulk_auto_assignment_job - Every 15 minutes
+   
+   Removed Jobs:
+   - internal_check_new_versions_job - REMOVED (was causing branding resets)
+
+✅ Branding Configuration
+   - INSTALLATION_NAME: "VoxeDesk" ✓
+   - Branding will persist (no daily reset job)
+
+✅ File Exclusions
+   - .md files in image: 0 found ✓
+   - Enterprise folder: Not present ✓
+
+✅ Services Status
+   - Rails: Running on port 8083 ✓
+   - Sidekiq: Running ✓
+   - PostgreSQL: Running ✓
+   - Redis: Running ✓
+
+✅ Database
+   - Migrations: Completed successfully ✓
+   - Installation configs: 83 loaded ✓
+   - Rails console: Working ✓
+
+✅ Application Health
+   - Rails server: Listening on http://0.0.0.0:3000 ✓
+   - Puma: Running in production mode ✓
+   - Database connection: Working ✓
+
+ACCESS INFORMATION
+==================
+
+- Application URL: http://localhost:8083
+- Rails logs: docker compose -f docker-compose.production.yaml logs rails
+- Sidekiq logs: docker compose -f docker-compose.production.yaml logs sidekiq
+- Rails console: docker compose -f docker-compose.production.yaml exec rails bundle exec rails console
+
+NEXT STEPS
+==========
+
+1. Access the application at http://localhost:8083
+2. Create an admin user if needed:
+   docker compose -f docker-compose.production.yaml exec rails bundle exec rails runner create_admin_user.rb
+3. Verify branding persists after 24 hours (no reset should occur)
+4. Monitor Sidekiq jobs to ensure only required jobs run
+
+BUILD INFORMATION
+=================
+
+- Docker Image: mcp4ai/voxedesk-selfhost:latest
+- Image Digest: sha256:93f62693758975885cd5c6a861ee604d7ef7da296ca7d8ccac14357bfcb81bdf
+- Build Date: 2025-12-10
+- Git Branch: lean-docker
+

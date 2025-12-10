@@ -1,0 +1,126 @@
+LEAN DOCKER BUILD SUMMARY
+==========================
+
+This document summarizes the changes made to create a lean, self-hosted Docker build
+that excludes Enterprise/premium code and unnecessary files.
+
+CHANGES MADE
+============
+
+1. .dockerignore
+   - Added exclusion for enterprise/ folder
+   - Added exclusion for all .md files (*.md and **/*.md)
+
+2. config/application.rb
+   - Removed enterprise eager_load_paths
+   - Removed enterprise view paths
+   - Removed enterprise initializer loading
+   - Kept only community code paths
+
+3. Rakefile
+   - Removed enterprise rake tasks loading
+   - Clean community-only rake task loading
+
+4. config/schedule.yml
+   - Removed internal_check_new_versions_job (branding reset job)
+   - Kept all required functional jobs:
+     * trigger_scheduled_items_job
+     * trigger_imap_email_inboxes_job
+     * remove_stale_contact_inboxes_job
+     * remove_stale_redis_keys_job
+     * process_stale_contacts_job
+     * delete_accounts_job
+     * bulk_auto_assignment_job
+
+5. docker/Dockerfile
+   - Changed from COPY . /app to selective copying
+   - Copies only: app/, config/, lib/, public/, db/, bin/, vendor/, and essential files
+   - Explicitly excludes enterprise/ folder
+   - Removes all .md files during build
+   - Removes enterprise/ folder if it exists
+
+6. lib/chatwoot_app.rb
+   - Modified enterprise? method to always return false
+   - Prevents any enterprise feature checks
+
+FILES EXCLUDED FROM BUILD
+=========================
+
+- enterprise/ (entire folder)
+- *.md (all markdown files)
+- Documentation files
+- Enterprise configs, services, jobs, models
+
+FILES KEPT IN BUILD
+===================
+
+- app/ (all application code)
+- config/ (configuration files)
+- lib/ (libraries)
+- public/ (static assets including brand-assets/)
+- db/ (database migrations and seeds)
+- bin/ (executables)
+- vendor/ (vendor assets)
+- Essential config files (Rakefile, config.ru, Procfile, etc.)
+
+SCHEDULED JOBS CONFIGURATION
+============================
+
+Active Jobs:
+- trigger_scheduled_items_job (every 5 minutes)
+- trigger_imap_email_inboxes_job (every minute)
+- remove_stale_contact_inboxes_job (daily at 22:30 UTC)
+- remove_stale_redis_keys_job (daily at 22:30 UTC)
+- process_stale_contacts_job (daily at 04:30 UTC)
+- delete_accounts_job (daily at 01:00 UTC)
+- bulk_auto_assignment_job (every 15 minutes)
+
+Removed Jobs:
+- internal_check_new_versions_job (was causing branding resets)
+
+DOCKER COMPOSE SERVICES
+=======================
+
+Services kept:
+- rails (Rails backend + web server)
+- sidekiq (background jobs)
+- postgres (PostgreSQL database)
+- redis (Redis cache)
+
+Volumes:
+- storage_data → /app/storage
+- postgres_data → /var/lib/postgresql/data
+- redis_data → /data
+
+NEXT STEPS
+==========
+
+1. Create Git branch:
+   git checkout -b lean-docker
+   git add -A
+   git commit -m "Create lean Docker build excluding enterprise code and .md files"
+
+2. Build Docker image:
+   docker build -f docker/Dockerfile -t mcp4ai/voxedesk-selfhost:latest .
+
+3. Push to Docker Hub:
+   docker push mcp4ai/voxedesk-selfhost:latest
+
+4. Verify:
+   - Branding persists (no daily reset)
+   - Sidekiq runs only required jobs
+   - No enterprise/premium warnings
+   - App functions normally
+
+VERIFICATION CHECKLIST
+======================
+
+After building and running:
+- [ ] Branding values persist (check after 24 hours)
+- [ ] Sidekiq logs show only required jobs
+- [ ] No "enterprise" or "premium" warnings in logs
+- [ ] All core features work (conversations, messages, contacts)
+- [ ] Scheduled jobs execute correctly
+- [ ] Database migrations work
+- [ ] Static assets load correctly
+
