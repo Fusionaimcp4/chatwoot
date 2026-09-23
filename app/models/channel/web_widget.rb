@@ -16,7 +16,7 @@
 #  website_url           :string
 #  welcome_tagline       :string
 #  welcome_title         :string
-#  widget_color          :string           default("#1f93ff")
+#  widget_color          :string           default("#78FCD6")
 #  widget_settings       :jsonb            not null
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
@@ -34,7 +34,7 @@ class Channel::WebWidget < ApplicationRecord
 
   self.table_name = 'channel_web_widgets'
   WIDGET_LAYOUTS = %w[compact expanded].freeze
-  DEFAULT_WIDGET_LAYOUT = 'expanded'
+  DEFAULT_WIDGET_LAYOUT = 'compact'
 
   EDITABLE_ATTRS = [:website_url, :widget_color, :welcome_title, :welcome_tagline, :reply_time, :pre_chat_form_enabled,
                     :continuity_via_email, :hmac_mandatory, :allowed_domains, :hide_branding,

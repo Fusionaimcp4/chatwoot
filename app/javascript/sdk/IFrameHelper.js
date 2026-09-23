@@ -72,7 +72,7 @@ export const IFrameHelper = {
     iframe.id = 'chatwoot_live_chat_widget';
     iframe.style.visibility = 'hidden';
 
-    let holderClassName = `woot-widget-holder woot-widget-layout--expanded woot--hide woot-elements--${window.$chatwoot.position}`;
+    let holderClassName = `woot-widget-holder woot-widget-layout--compact woot--hide woot-elements--${window.$chatwoot.position}`;
     if (window.$chatwoot.hideMessageBubble) {
       holderClassName += ` woot-widget--without-bubble`;
     }

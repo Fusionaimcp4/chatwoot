@@ -32,7 +32,7 @@ export default {
   data() {
     return {
       isWidgetPreview: true,
-      color: '#1f93ff',
+      color: '#78FCD6',
       websiteName: '',
       welcomeHeading: '',
       welcomeTagline: '',
@@ -44,7 +44,7 @@ export default {
         'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.WIDGET_BUBBLE_LAUNCHER_TITLE.DEFAULT'
       ),
       widgetBubbleType: 'standard',
-      widgetLayout: 'expanded',
+      widgetLayout: 'compact',
       widgetBubblePositions: [
         {
           id: 'left',
@@ -191,7 +191,7 @@ export default {
       this.color = widget_color;
       this.replyTime = reply_time;
       this.avatarUrl = avatar_url;
-      this.widgetLayout = widget_settings?.layout || 'expanded';
+      this.widgetLayout = widget_settings?.layout || 'compact';
       this.widgetLayoutModes = this.widgetLayoutModes.map(item => ({
         ...item,
         checked: item.id === this.widgetLayout,

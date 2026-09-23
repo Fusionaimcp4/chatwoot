@@ -19,4 +19,4 @@ export const getDarkMode = darkMode =>
   DARK_MODE.includes(darkMode) ? darkMode : DARK_MODE[0];
 
 export const getWidgetLayout = layout =>
-  WIDGET_LAYOUT.includes(layout) ? layout : WIDGET_LAYOUT[1];
+  WIDGET_LAYOUT.includes(layout) ? layout : WIDGET_LAYOUT[0];

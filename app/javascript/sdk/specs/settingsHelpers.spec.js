@@ -39,10 +39,10 @@ describe('#isFlatWidgetStyle', () => {
 });
 
 describe('#getWidgetLayout', () => {
-  it('returns the configured layout and defaults to expanded', () => {
+  it('returns the configured layout and defaults to compact', () => {
     expect(getWidgetLayout('compact')).toEqual('compact');
     expect(getWidgetLayout('expanded')).toEqual('expanded');
-    expect(getWidgetLayout('')).toEqual('expanded');
-    expect(getWidgetLayout('legacy')).toEqual('expanded');
+    expect(getWidgetLayout('')).toEqual('compact');
+    expect(getWidgetLayout('legacy')).toEqual('compact');
   });
 });

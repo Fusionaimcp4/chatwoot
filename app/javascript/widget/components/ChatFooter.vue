@@ -125,7 +125,6 @@ export default {
       @dismiss="inReplyTo = null"
     />
     <ChatInputWrap
-      class="shadow-sm"
       :on-send-message="handleSendMessage"
       :on-send-attachment="handleSendAttachment"
     />
