@@ -4,7 +4,7 @@
 
 .conversation-wrap {
   .agent-message {
-    @apply items-end flex flex-row justify-start mt-0 ltr:mr-0 rtl:mr-2 mb-0.5 ltr:ml-2 rtl:ml-0 max-w-[88%];
+    @apply items-end flex flex-row justify-start mt-0 ltr:mr-0 rtl:mr-2 mb-1 ltr:ml-2 rtl:ml-0 max-w-[92%];
 
     .avatar-wrap {
       @apply flex-shrink-0 h-6 w-6;
@@ -57,7 +57,7 @@
     }
 
     + .user-message-wrap {
-      @apply mt-4;
+      @apply mt-5;
     }
 
     &.has-response + .user-message-wrap {
@@ -69,7 +69,7 @@
     }
 
     &.has-response + .agent-message-wrap {
-      @apply mt-4;
+      @apply mt-5;
     }
   }
 

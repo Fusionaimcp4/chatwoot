@@ -21,6 +21,13 @@ export const buildInboxData = inboxParams => {
     }
   }
   Object.keys(channelParams).forEach(key => {
+    if (key === 'widget_settings' && channelParams[key]) {
+      Object.entries(channelParams[key]).forEach(([settingKey, value]) => {
+        formData.append(`channel[widget_settings][${settingKey}]`, value);
+      });
+      return;
+    }
+
     formData.append(`channel[${key}]`, channel[key]);
   });
   return formData;

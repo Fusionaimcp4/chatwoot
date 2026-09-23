@@ -144,7 +144,7 @@ export const SDK_CSS = `
   fill: var(--s-700);
 }
 
-@media only screen and (min-width: 667px) {
+@media only screen and (min-width: 668px) {
   .woot-widget-holder.woot-elements--left {
     left: 20px;
  }
@@ -278,14 +278,25 @@ export const SDK_CSS = `
   }
 }
 
-@media only screen and (min-width: 667px) {
+@media only screen and (min-width: 668px) {
   .woot-widget-holder {
     border-radius: 16px;
     bottom: 104px;
-    height: calc(81% - 64px - 20px);
-    max-height: 576px !important;
-    min-height: 225px !important;
-    width: 360px !important;
+    height: min(62vh, calc(100vh - 128px));
+    max-height: calc(100vh - 128px) !important;
+    min-height: min(22rem, calc(100vh - 128px)) !important;
+    max-width: calc(100vw - 40px) !important;
+    width: clamp(480px, 46vw, 600px) !important;
+  }
+
+  .woot-widget-holder.woot-widget-layout--compact {
+    height: min(56vh, calc(100vh - 128px));
+    width: clamp(22rem, 32vw, 26.25rem) !important;
+  }
+
+  .woot-widget-holder.woot-widget-layout--expanded {
+    height: min(62vh, calc(100vh - 128px));
+    width: clamp(480px, 46vw, 600px) !important;
  }
 }
 

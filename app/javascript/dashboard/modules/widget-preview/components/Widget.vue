@@ -55,6 +55,10 @@ export default {
       type: String,
       default: '',
     },
+    widgetLayout: {
+      type: String,
+      default: 'expanded',
+    },
   },
   setup() {
     const { replaceInstallationName } = useBranding();
@@ -145,7 +149,12 @@ export default {
     </div>
     <div
       v-if="isWidgetVisible"
-      class="widget-wrapper flex flex-col justify-between rounded-lg shadow-md bg-n-slate-2 dark:bg-n-solid-1 h-[31.25rem] w-80"
+      class="widget-wrapper flex flex-col justify-between rounded-2xl shadow-md bg-n-slate-2 dark:bg-n-solid-1"
+      :class="[
+        widgetLayout === 'compact'
+          ? 'widget-wrapper--compact'
+          : 'widget-wrapper--expanded',
+      ]"
     >
       <WidgetHead :config="getWidgetConfig" />
       <div>
@@ -204,3 +213,20 @@ export default {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.widget-wrapper {
+  max-width: 100%;
+  min-height: min(30rem, calc(100vh - 14rem));
+  height: clamp(30rem, 62vh, 42rem);
+}
+
+.widget-wrapper--compact {
+  width: min(100%, clamp(22.5rem, 32vw, 26.25rem));
+  height: clamp(28rem, 56vh, 36rem);
+}
+
+.widget-wrapper--expanded {
+  width: min(100%, clamp(30rem, 46vw, 37.5rem));
+}
+</style>

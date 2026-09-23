@@ -622,6 +622,20 @@ RSpec.describe 'Inboxes API', type: :request do
         expect(response).to have_http_status(:success)
         expect(inbox.reload.allow_messages_after_resolved).to be_falsey
       end
+
+      it 'updates and serializes the web widget layout' do
+        web_widget_channel = create(:channel_widget, account: account)
+        web_widget_inbox = web_widget_channel.inbox
+
+        patch "/api/v1/accounts/#{account.id}/inboxes/#{web_widget_inbox.id}",
+              headers: admin.create_new_auth_token,
+              params: { channel: { widget_settings: { layout: 'compact' } } },
+              as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(web_widget_channel.reload.widget_layout).to eq('compact')
+        expect(response.parsed_body['widget_settings']['layout']).to eq('compact')
+      end
     end
 
     context 'when an authenticated user updates email inbox' do

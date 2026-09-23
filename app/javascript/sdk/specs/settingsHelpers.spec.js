@@ -3,6 +3,7 @@ import {
   getWidgetStyle,
   isExpandedView,
   isFlatWidgetStyle,
+  getWidgetLayout,
 } from '../settingsHelper';
 
 describe('#getBubbleView', () => {
@@ -34,5 +35,14 @@ describe('#isFlatWidgetStyle', () => {
     expect(isFlatWidgetStyle('')).toEqual(false);
     expect(isFlatWidgetStyle('standard')).toEqual(false);
     expect(isFlatWidgetStyle('flat')).toEqual(true);
+  });
+});
+
+describe('#getWidgetLayout', () => {
+  it('returns the configured layout and defaults to expanded', () => {
+    expect(getWidgetLayout('compact')).toEqual('compact');
+    expect(getWidgetLayout('expanded')).toEqual('expanded');
+    expect(getWidgetLayout('')).toEqual('expanded');
+    expect(getWidgetLayout('legacy')).toEqual('expanded');
   });
 });

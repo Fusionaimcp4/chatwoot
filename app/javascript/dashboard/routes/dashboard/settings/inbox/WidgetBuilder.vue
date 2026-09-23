@@ -44,6 +44,7 @@ export default {
         'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.WIDGET_BUBBLE_LAUNCHER_TITLE.DEFAULT'
       ),
       widgetBubbleType: 'standard',
+      widgetLayout: 'expanded',
       widgetBubblePositions: [
         {
           id: 'left',
@@ -74,6 +75,22 @@ export default {
             'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.WIDGET_BUBBLE_TYPE.EXPANDED_BUBBLE'
           ),
           checked: false,
+        },
+      ],
+      widgetLayoutModes: [
+        {
+          id: 'compact',
+          title: this.$t(
+            'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.WIDGET_LAYOUT.COMPACT'
+          ),
+          checked: false,
+        },
+        {
+          id: 'expanded',
+          title: this.$t(
+            'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.WIDGET_LAYOUT.EXPANDED'
+          ),
+          checked: true,
         },
       ],
       welcomeTaglineEditorMenuOptions: WIDGET_BUILDER_EDITOR_MENU_OPTIONS,
@@ -166,6 +183,7 @@ export default {
         widget_color,
         reply_time,
         avatar_url,
+        widget_settings,
       } = this.inbox;
       this.websiteName = name;
       this.welcomeHeading = welcome_title;
@@ -173,6 +191,11 @@ export default {
       this.color = widget_color;
       this.replyTime = reply_time;
       this.avatarUrl = avatar_url;
+      this.widgetLayout = widget_settings?.layout || 'expanded';
+      this.widgetLayoutModes = this.widgetLayoutModes.map(item => ({
+        ...item,
+        checked: item.id === this.widgetLayout,
+      }));
 
       const savedInformation = this.getSavedInboxInformation();
       if (savedInformation) {
@@ -199,6 +222,13 @@ export default {
     },
     handleWidgetBubbleTypeChange(item) {
       this.widgetBubbleType = item.id;
+    },
+    handleWidgetLayoutChange(item) {
+      this.widgetLayout = item.id;
+      this.widgetLayoutModes = this.widgetLayoutModes.map(layout => ({
+        ...layout,
+        checked: layout.id === this.widgetLayout,
+      }));
     },
     handleWidgetViewChange(item) {
       this.isWidgetPreview = item.id === 'preview';
@@ -245,6 +275,7 @@ export default {
             welcome_title: this.welcomeHeading,
             welcome_tagline: this.welcomeTagline,
             reply_time: this.replyTime,
+            widget_settings: { layout: this.widgetLayout },
           },
         };
         if (this.avatarFile) {
@@ -363,6 +394,16 @@ export default {
               <woot-color-picker v-model="color" />
             </label>
             <InputRadioGroup
+              name="widget-layout"
+              :label="
+                $t(
+                  'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.WIDGET_LAYOUT_LABEL'
+                )
+              "
+              :items="widgetLayoutModes"
+              :action="handleWidgetLayoutChange"
+            />
+            <InputRadioGroup
               name="widget-bubble-position"
               :label="
                 $t(
@@ -418,7 +459,7 @@ export default {
         />
         <div
           v-if="isWidgetPreview"
-          class="flex flex-col items-center justify-end min-h-[40.625rem] mx-5 mb-5 p-2.5 bg-n-slate-3 rounded-lg"
+          class="widget-preview-stage flex flex-col items-center justify-end mx-5 mb-5 p-2.5 bg-n-slate-3 rounded-lg"
         >
           <Widget
             :welcome-heading="welcomeHeading"
@@ -431,6 +472,7 @@ export default {
             :widget-bubble-position="widgetBubblePosition"
             :widget-bubble-launcher-title="widgetBubbleLauncherTitle"
             :widget-bubble-type="widgetBubbleType"
+            :widget-layout="widgetLayout"
           />
         </div>
         <div
@@ -443,3 +485,9 @@ export default {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.widget-preview-stage {
+  min-height: clamp(36rem, 72vh, 48rem);
+}
+</style>

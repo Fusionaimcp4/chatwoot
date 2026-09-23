@@ -122,10 +122,11 @@ export default {
 
 <template>
   <div
-    class="items-center flex ltr:pl-3 rtl:pr-3 ltr:pr-2 rtl:pl-2 rounded-[7px] transition-all duration-200 bg-n-background !shadow-[0_0_0_1px,0_0_2px_3px]"
+    class="items-center flex ltr:pl-3 rtl:pr-3 ltr:pr-2 rtl:pl-2 rounded-2xl transition-all duration-200 bg-n-background !shadow-[0_0_0_1px,0_0_2px_3px]"
     :class="{
       '!shadow-n-brand dark:!shadow-n-brand': isFocused,
       '!shadow-n-strong dark:!shadow-n-strong': !isFocused,
+      '!rounded-none': isWidgetStyleFlat,
     }"
     @keydown.esc="hideEmojiPicker"
   >
@@ -184,6 +185,6 @@ export default {
 }
 
 .user-message-input {
-  @apply border-none outline-none w-full placeholder:text-n-slate-10 resize-none h-8 min-h-8 max-h-60 py-1 px-0 my-2 bg-n-background text-n-slate-12 transition-all duration-200;
+  @apply border-none outline-none w-full placeholder:text-n-slate-10 resize-none h-10 min-h-10 max-h-60 py-2 px-0 my-2 bg-n-background text-n-slate-12 transition-all duration-200;
 }
 </style>

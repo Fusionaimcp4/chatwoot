@@ -35,6 +35,7 @@ json.tweets_enabled resource.channel.try(:tweets_enabled) if resource.twitter?
 ## WebWidget Attributes
 json.allowed_domains resource.channel.try(:allowed_domains)
 json.widget_color resource.channel.try(:widget_color)
+json.widget_settings resource.channel.try(:widget_settings_with_defaults)
 json.website_url resource.channel.try(:website_url)
 json.hmac_mandatory resource.channel.try(:hmac_mandatory)
 json.welcome_title resource.channel.try(:welcome_title)

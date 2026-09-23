@@ -1,4 +1,9 @@
-import { BUBBLE_DESIGN, DARK_MODE, WIDGET_DESIGN } from './constants';
+import {
+  BUBBLE_DESIGN,
+  DARK_MODE,
+  WIDGET_DESIGN,
+  WIDGET_LAYOUT,
+} from './constants';
 
 export const getBubbleView = type =>
   BUBBLE_DESIGN.includes(type) ? type : BUBBLE_DESIGN[0];
@@ -12,3 +17,6 @@ export const isFlatWidgetStyle = style => style === 'flat';
 
 export const getDarkMode = darkMode =>
   DARK_MODE.includes(darkMode) ? darkMode : DARK_MODE[0];
+
+export const getWidgetLayout = layout =>
+  WIDGET_LAYOUT.includes(layout) ? layout : WIDGET_LAYOUT[1];

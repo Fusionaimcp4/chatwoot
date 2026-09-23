@@ -17,6 +17,7 @@
 #  welcome_tagline       :string
 #  welcome_title         :string
 #  widget_color          :string           default("#1f93ff")
+#  widget_settings       :jsonb            not null
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
 #  account_id            :integer
@@ -32,8 +33,12 @@ class Channel::WebWidget < ApplicationRecord
   include FlagShihTzu
 
   self.table_name = 'channel_web_widgets'
+  WIDGET_LAYOUTS = %w[compact expanded].freeze
+  DEFAULT_WIDGET_LAYOUT = 'expanded'
+
   EDITABLE_ATTRS = [:website_url, :widget_color, :welcome_title, :welcome_tagline, :reply_time, :pre_chat_form_enabled,
                     :continuity_via_email, :hmac_mandatory, :allowed_domains, :hide_branding,
+                    { widget_settings: [:layout] },
                     { pre_chat_form_options: [:pre_chat_message, :require_email,
                                               { pre_chat_fields:
                                                 [:field_type, :label, :placeholder, :name, :enabled, :type, :enabled, :required,
@@ -41,6 +46,7 @@ class Channel::WebWidget < ApplicationRecord
                     { selected_feature_flags: [] }].freeze
 
   before_validation :validate_pre_chat_options
+  before_validation :normalize_widget_settings
   validates :website_url, presence: true
   validates :widget_color, presence: true
   has_many :portals, foreign_key: 'channel_web_widget_id', dependent: :nullify, inverse_of: :channel_web_widget
@@ -56,6 +62,15 @@ class Channel::WebWidget < ApplicationRecord
             :check_for_column => false
 
   enum reply_time: { in_a_few_minutes: 0, in_a_few_hours: 1, in_a_day: 2 }
+
+  def widget_layout
+    layout = widget_settings.to_h['layout']
+    WIDGET_LAYOUTS.include?(layout) ? layout : DEFAULT_WIDGET_LAYOUT
+  end
+
+  def widget_settings_with_defaults
+    { 'layout' => widget_layout }
+  end
 
   def name
     'Website'
@@ -97,6 +112,15 @@ class Channel::WebWidget < ApplicationRecord
           'field_type': 'standard', 'label': 'Phone number', 'name': 'phoneNumber', 'type': 'text', 'required': false, 'enabled': false
         }
       ]
+    }
+  end
+
+  def normalize_widget_settings
+    settings = widget_settings.respond_to?(:to_h) ? widget_settings.to_h.stringify_keys : {}
+    layout = settings['layout']
+
+    self.widget_settings = {
+      'layout' => WIDGET_LAYOUTS.include?(layout) ? layout : DEFAULT_WIDGET_LAYOUT
     }
   end
 
