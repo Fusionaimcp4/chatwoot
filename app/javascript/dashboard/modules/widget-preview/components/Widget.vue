@@ -218,15 +218,14 @@ export default {
 .widget-wrapper {
   max-width: 100%;
   min-height: min(30rem, calc(100vh - 14rem));
-  height: clamp(30rem, 62vh, 42rem);
+  height: min(70vh, calc(100vh - 14rem));
 }
 
 .widget-wrapper--compact {
-  width: min(100%, clamp(22.5rem, 32vw, 26.25rem));
-  height: clamp(30rem, 60vh, 39rem);
+  width: min(100%, clamp(23.5rem, 29vw, 25rem));
 }
 
 .widget-wrapper--expanded {
-  width: min(100%, clamp(30rem, 46vw, 37.5rem));
+  width: min(100%, clamp(32.5rem, 48vw, 38.75rem));
 }
 </style>

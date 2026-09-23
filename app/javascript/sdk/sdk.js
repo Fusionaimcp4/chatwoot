@@ -288,22 +288,22 @@ export const SDK_CSS = `
 
   .woot-widget-holder {
     border-radius: 16px;
-    bottom: 104px;
-    height: min(62vh, calc(100vh - 128px));
-    max-height: calc(100vh - 128px) !important;
-    min-height: min(22rem, calc(100vh - 128px)) !important;
+    bottom: 20px;
+    height: min(70vh, calc(100vh - 40px));
+    max-height: calc(100vh - 40px) !important;
+    min-height: min(22rem, calc(100vh - 40px)) !important;
     max-width: calc(100vw - 40px) !important;
-    width: clamp(480px, 46vw, 600px) !important;
+    width: clamp(520px, 48vw, 620px) !important;
   }
 
   .woot-widget-holder.woot-widget-layout--compact {
-    height: min(60vh, calc(100vh - 128px));
-    width: clamp(22rem, 32vw, 26.25rem) !important;
+    height: min(70vh, calc(100vh - 40px));
+    width: clamp(23.5rem, 29vw, 25rem) !important;
   }
 
   .woot-widget-holder.woot-widget-layout--expanded {
-    height: min(62vh, calc(100vh - 128px));
-    width: clamp(480px, 46vw, 600px) !important;
+    height: min(70vh, calc(100vh - 40px));
+    width: clamp(520px, 48vw, 620px) !important;
  }
 }
 
