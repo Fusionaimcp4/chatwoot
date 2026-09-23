@@ -279,6 +279,13 @@ export const SDK_CSS = `
 }
 
 @media only screen and (min-width: 668px) {
+  .woot-widget-bubble.woot--close {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden !important;
+    z-index: -1 !important;
+  }
+
   .woot-widget-holder {
     border-radius: 16px;
     bottom: 104px;
@@ -290,7 +297,7 @@ export const SDK_CSS = `
   }
 
   .woot-widget-holder.woot-widget-layout--compact {
-    height: min(56vh, calc(100vh - 128px));
+    height: min(60vh, calc(100vh - 128px));
     width: clamp(22rem, 32vw, 26.25rem) !important;
   }
 

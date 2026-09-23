@@ -223,7 +223,7 @@ export default {
 
 .widget-wrapper--compact {
   width: min(100%, clamp(22.5rem, 32vw, 26.25rem));
-  height: clamp(28rem, 56vh, 36rem);
+  height: clamp(30rem, 60vh, 39rem);
 }
 
 .widget-wrapper--expanded {

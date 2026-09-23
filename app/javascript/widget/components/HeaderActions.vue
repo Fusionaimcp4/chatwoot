@@ -101,25 +101,13 @@ export default {
       <FluentIcon icon="open" size="22" class="text-n-slate-12" />
     </button>
     <button
+      v-if="isIframe || isRNWebView"
       class="button transparent compact close-button"
-      :class="{
-        'rn-close-button': isRNWebView,
-      }"
+      :title="$t('UNREAD_VIEW.CLOSE_MESSAGES_BUTTON')"
+      :aria-label="$t('UNREAD_VIEW.CLOSE_MESSAGES_BUTTON')"
       @click="closeWindow"
     >
       <FluentIcon icon="dismiss" size="24" class="text-n-slate-12" />
     </button>
   </div>
 </template>
-
-<style scoped lang="scss">
-.actions {
-  .close-button {
-    display: none;
-  }
-
-  .rn-close-button {
-    display: block !important;
-  }
-}
-</style>
