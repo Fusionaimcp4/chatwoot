@@ -4,12 +4,14 @@ class WidgetsController < ActionController::Base
 
   before_action :set_global_config
   before_action :set_web_widget
+  before_action :set_hide_branding
   before_action :ensure_account_is_active
   before_action :ensure_location_is_supported
   before_action :set_token
   before_action :set_contact
   before_action :build_contact
   after_action :allow_iframe_requests
+  after_action :set_no_cache_headers
 
   private
 
@@ -22,6 +24,20 @@ class WidgetsController < ActionController::Base
   rescue ActiveRecord::RecordNotFound
     Rails.logger.error('web widget does not exist')
     render json: { error: 'web widget does not exist' }, status: :not_found
+  end
+
+  def set_hide_branding
+    return if @web_widget.blank?
+
+    # Reload to get fresh value from database (important for server deployments)
+    @web_widget.reload if @web_widget.persisted?
+
+    # Safely access hide_branding - defaults to false if column doesn't exist (migration not run)
+    @hide_branding = if @web_widget.respond_to?(:hide_branding)
+                       @web_widget.hide_branding || false
+                     else
+                       false
+                     end
   end
 
   def set_token
@@ -76,6 +92,13 @@ class WidgetsController < ActionController::Base
       domains = @web_widget.allowed_domains.split(',').map(&:strip).join(' ')
       response.headers['Content-Security-Policy'] = "frame-ancestors #{domains}"
     end
+  end
+
+  def set_no_cache_headers
+    # Prevent caching of widget page to ensure branding changes are reflected immediately
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
   end
 end
 

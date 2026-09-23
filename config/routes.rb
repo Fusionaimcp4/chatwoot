@@ -442,6 +442,17 @@ Rails.application.routes.draw do
   end
 
   # ----------------------------------------------------------------------
+  # Routes for internal APIs (machine-to-machine only)
+  namespace :internal, defaults: { format: 'json' } do
+    namespace :api do
+      namespace :v1 do
+        get 'widget-config', to: 'widget_configs#show'
+        put 'widget-config', to: 'widget_configs#update'
+      end
+    end
+  end
+
+  # ----------------------------------------------------------------------
   # Routes for platform APIs
   namespace :platform, defaults: { format: 'json' } do
     namespace :api do

@@ -282,10 +282,10 @@ export const SDK_CSS = `
   .woot-widget-holder {
     border-radius: 16px;
     bottom: 104px;
-    height: calc(90% - 64px - 20px);
-    max-height: 640px !important;
-    min-height: 250px !important;
-    width: 400px !important;
+    height: calc(81% - 64px - 20px);
+    max-height: 576px !important;
+    min-height: 225px !important;
+    width: 360px !important;
  }
 }
 
