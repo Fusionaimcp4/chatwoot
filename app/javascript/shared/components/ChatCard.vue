@@ -144,7 +144,7 @@ export default {
           @click="onAiButtonClick"
         >
           <svg
-            class="h-3 w-3"
+            class="h-4 w-4"
             viewBox="0 0 24 24"
             fill="currentColor"
             xmlns="http://www.w3.org/2000/svg"
@@ -170,7 +170,7 @@ export default {
           @click="onPrimaryButtonClick"
         >
           <svg
-            class="h-3 w-3"
+            class="h-4 w-4"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -179,16 +179,16 @@ export default {
             <path
               d="M3.5 5.5h1.2l.4 1.5h12.6a1 1 0 0 1 .98 1.2l-1.1 5.2a1.5 1.5 0 0 1-1.47 1.2H8.1a1.5 1.5 0 0 1-1.47-1.2L5.2 5.5H3.5"
               stroke="currentColor"
-              stroke-width="1.6"
+              stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-            <circle cx="9" cy="18.5" r="1.15" fill="currentColor" />
-            <circle cx="15.5" cy="18.5" r="1.15" fill="currentColor" />
+            <circle cx="9" cy="18.5" r="1.25" fill="currentColor" />
+            <circle cx="15.5" cy="18.5" r="1.25" fill="currentColor" />
             <path
               d="M17.5 3.5v4M15.5 5.5h4"
               stroke="currentColor"
-              stroke-width="1.6"
+              stroke-width="2"
               stroke-linecap="round"
             />
           </svg>

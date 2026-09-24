@@ -136,7 +136,11 @@ export default {
       :submitted-values="messageContentAttributes.submitted_values"
       @submit="onFormSubmit"
     />
-    <div v-if="isCards" class="grid w-full gap-2" :class="cardsGridClass">
+    <div
+      v-if="isCards"
+      class="mx-auto grid w-full max-w-full gap-2"
+      :class="cardsGridClass"
+    >
       <ChatCard
         v-for="item in messageContentAttributes.items"
         :key="item.title"

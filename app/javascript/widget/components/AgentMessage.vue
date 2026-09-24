@@ -166,9 +166,12 @@ export default {
     <div
       v-if="!isASubmittedForm"
       class="agent-message"
-      :class="{ '!max-w-full': contentType === 'cards' }"
+      :class="{
+        '!ml-0 !mr-0 box-border w-full !max-w-full px-2':
+          contentType === 'cards',
+      }"
     >
-      <div class="avatar-wrap">
+      <div v-if="contentType !== 'cards'" class="avatar-wrap">
         <div class="user-thumbnail-box">
           <Avatar
             v-if="message.showAvatar || hasRecordedResponse"
@@ -181,16 +184,21 @@ export default {
       </div>
       <div
         class="message-wrap"
-        :class="{ '!max-w-full': contentType === 'cards' }"
+        :class="{
+          '!ml-0 !mr-0 min-w-0 w-full !max-w-full': contentType === 'cards',
+        }"
       >
         <div v-if="hasReplyTo" class="flex mt-2 mb-1 text-xs">
           <ReplyToChip :reply-to="replyTo" />
         </div>
-        <div class="flex w-full gap-1">
+        <div
+          class="flex w-full gap-1"
+          :class="{ 'relative min-w-0': contentType === 'cards' }"
+        >
           <div
             class="space-y-2"
             :class="{
-              'w-full':
+              'min-w-0 w-full':
                 contentType === 'cards' ||
                 (contentType === 'form' &&
                   !messageContentAttributes?.submitted_values),
@@ -239,7 +247,10 @@ export default {
               </div>
             </div>
           </div>
-          <div class="flex flex-col justify-end">
+          <div
+            class="flex flex-col justify-end"
+            :class="{ 'absolute bottom-0 right-0': contentType === 'cards' }"
+          >
             <MessageReplyButton
               class="transition-opacity delay-75 opacity-0 group-hover:opacity-100 sm:opacity-0"
               @click="toggleReply"
@@ -247,7 +258,10 @@ export default {
           </div>
         </div>
         <p
-          v-if="message.showAvatar || hasRecordedResponse"
+          v-if="
+            contentType !== 'cards' &&
+            (message.showAvatar || hasRecordedResponse)
+          "
           v-dompurify-html="agentName"
           class="agent-name text-n-slate-11"
         />
