@@ -7,6 +7,7 @@ import ChatArticle from './template/Article.vue';
 import EmailInput from './template/EmailInput.vue';
 import CustomerSatisfaction from 'shared/components/CustomerSatisfaction.vue';
 import IntegrationCard from './template/IntegrationCard.vue';
+import configMixin from '../mixins/configMixin';
 
 export default {
   name: 'AgentMessageBubble',
@@ -19,6 +20,7 @@ export default {
     CustomerSatisfaction,
     IntegrationCard,
   },
+  mixins: [configMixin],
   props: {
     message: { type: String, default: null },
     contentType: { type: String, default: null },
@@ -64,6 +66,12 @@ export default {
     isIntegrations() {
       return this.contentType === 'integrations';
     },
+    isExpandedWidgetLayout() {
+      return this.channelConfig?.widgetSettings?.layout === 'expanded';
+    },
+    cardsGridClass() {
+      return this.isExpandedWidgetLayout ? 'grid-cols-3' : 'grid-cols-2';
+    },
   },
   methods: {
     onResponse(messageResponse) {
@@ -90,7 +98,7 @@ export default {
 </script>
 
 <template>
-  <div class="chat-bubble-wrap">
+  <div class="chat-bubble-wrap" :class="{ 'w-full': isCards }">
     <div
       v-if="
         !isCards && !isOptions && !isForm && !isArticle && !isCards && !isCSAT
@@ -128,7 +136,7 @@ export default {
       :submitted-values="messageContentAttributes.submitted_values"
       @submit="onFormSubmit"
     />
-    <div v-if="isCards">
+    <div v-if="isCards" class="grid w-full gap-2" :class="cardsGridClass">
       <ChatCard
         v-for="item in messageContentAttributes.items"
         :key="item.title"

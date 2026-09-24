@@ -163,7 +163,11 @@ export default {
       'has-response': hasRecordedResponse || isASubmittedForm,
     }"
   >
-    <div v-if="!isASubmittedForm" class="agent-message">
+    <div
+      v-if="!isASubmittedForm"
+      class="agent-message"
+      :class="{ '!max-w-full': contentType === 'cards' }"
+    >
       <div class="avatar-wrap">
         <div class="user-thumbnail-box">
           <Avatar
@@ -175,7 +179,10 @@ export default {
           />
         </div>
       </div>
-      <div class="message-wrap">
+      <div
+        class="message-wrap"
+        :class="{ '!max-w-full': contentType === 'cards' }"
+      >
         <div v-if="hasReplyTo" class="flex mt-2 mb-1 text-xs">
           <ReplyToChip :reply-to="replyTo" />
         </div>
@@ -184,8 +191,9 @@ export default {
             class="space-y-2"
             :class="{
               'w-full':
-                contentType === 'form' &&
-                !messageContentAttributes?.submitted_values,
+                contentType === 'cards' ||
+                (contentType === 'form' &&
+                  !messageContentAttributes?.submitted_values),
             }"
           >
             <AgentMessageBubble
