@@ -77,12 +77,13 @@ class Channel::WebWidget < ApplicationRecord
   end
 
   def web_widget_script
+    sdk_cache_bust = defined?(GIT_HASH) && GIT_HASH.present? ? GIT_HASH : Chatwoot.config[:version]
     "
     <script>
       (function(d,t) {
         var BASE_URL=\"#{ENV.fetch('FRONTEND_URL', '')}\";
         var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=BASE_URL+\"/packs/js/sdk.js\";
+        g.src=BASE_URL+\"/packs/js/sdk.js?v=#{sdk_cache_bust}\";
         g.async = true;
         s.parentNode.insertBefore(g,s);
         g.onload=function(){

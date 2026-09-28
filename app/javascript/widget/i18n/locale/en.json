@@ -149,5 +149,20 @@
   },
   "FOOTER_REPLY_TO": {
     "REPLY_TO": "Replying to:"
+  },
+  "PRODUCT_OPTIONS": {
+    "SELECT_OPTIONS": "Select options",
+    "ADD_TO_CART": "Add to cart",
+    "CLOSE": "Close",
+    "PRICE": "Price",
+    "PRICE_UNAVAILABLE": "—",
+    "SELECTED_VALUE": "· {value}"
+  },
+  "PRODUCT_CARD": {
+    "FIND_SIMILAR": "Find similar products",
+    "ADD_TO_CART": "Add to cart"
+  },
+  "HEADER": {
+    "CART": "Cart"
   }
 }

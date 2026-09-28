@@ -47,6 +47,7 @@ describe('HeaderActions', () => {
           namespaced: true,
           getters: {
             getCanUserEndConversation: () => true,
+            getCartItemsCount: () => 0,
           },
         },
         conversationAttributes: {

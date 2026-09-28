@@ -22,11 +22,14 @@ import { useRouter } from 'vue-router';
 import { useAvailability } from 'widget/composables/useAvailability';
 import { SDK_SET_BUBBLE_VISIBILITY } from '../shared/constants/sharedFrameEvents';
 import { emitter } from 'shared/helpers/mitt';
+import ProductOptionsSheet from 'widget/components/ProductOptionsSheet.vue';
+import { OPEN_PRODUCT_OPTIONS } from 'widget/helpers/productOptions';
 
 export default {
   name: 'App',
   components: {
     Spinner,
+    ProductOptionsSheet,
   },
   mixins: [configMixin],
   setup() {
@@ -40,6 +43,16 @@ export default {
     return {
       isMobile: false,
       campaignsSnoozedTill: undefined,
+      productOptionsOpen: false,
+      productOptionsModel: {
+        title: '',
+        mediaUrl: '',
+        provider: 'woocommerce',
+        productId: null,
+        quantity: 1,
+        options: [],
+        variants: [],
+      },
     };
   },
   computed: {
@@ -98,6 +111,10 @@ export default {
     this.$store.dispatch('conversationAttributes/getAttributes');
     this.registerUnreadEvents();
     this.registerCampaignEvents();
+    this.registerProductOptionsEvents();
+  },
+  beforeUnmount() {
+    emitter.off(OPEN_PRODUCT_OPTIONS, this.openProductOptions);
   },
   methods: {
     ...mapActions('appConfig', [
@@ -331,6 +348,11 @@ export default {
           }
         } else if (message.event === SDK_SET_BUBBLE_VISIBILITY) {
           this.setBubbleVisibility(message.hideMessageBubble);
+        } else if (message.event === 'cart-updated') {
+          this.$store.dispatch(
+            'appConfig/setCartItemsCount',
+            message.itemsCount
+          );
         }
       });
     },
@@ -344,6 +366,36 @@ export default {
       if (snoozedTill) {
         this.campaignsSnoozedTill = Number(snoozedTill);
       }
+    },
+    registerProductOptionsEvents() {
+      emitter.on(OPEN_PRODUCT_OPTIONS, this.openProductOptions);
+    },
+    openProductOptions(model = {}) {
+      this.productOptionsModel = {
+        title: model.title || '',
+        mediaUrl: model.mediaUrl || '',
+        provider: model.provider || 'woocommerce',
+        productId: model.productId ?? null,
+        quantity: model.quantity || 1,
+        options: model.options || [],
+        variants: model.variants || [],
+      };
+      this.productOptionsOpen = true;
+    },
+    closeProductOptions() {
+      this.productOptionsOpen = false;
+    },
+    confirmProductOptions({ variantId }) {
+      IFrameHelper.sendMessage({
+        event: 'add-to-cart',
+        data: {
+          provider: this.productOptionsModel.provider,
+          productId: this.productOptionsModel.productId,
+          variantId,
+          quantity: this.productOptionsModel.quantity,
+        },
+      });
+      this.closeProductOptions();
     },
   },
 };
@@ -359,7 +411,7 @@ export default {
   </div>
   <div
     v-else
-    class="flex flex-col justify-end h-full"
+    class="relative flex h-full flex-col justify-end"
     :class="{
       'is-mobile': isMobile,
       'is-widget-right': isRightAligned,
@@ -369,6 +421,15 @@ export default {
     }"
   >
     <router-view />
+    <ProductOptionsSheet
+      :open="productOptionsOpen"
+      :title="productOptionsModel.title"
+      :media-url="productOptionsModel.mediaUrl"
+      :options="productOptionsModel.options"
+      :variants="productOptionsModel.variants"
+      @close="closeProductOptions"
+      @confirm="confirmProductOptions"
+    />
   </div>
 </template>
 

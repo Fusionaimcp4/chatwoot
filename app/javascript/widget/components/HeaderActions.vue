@@ -24,6 +24,7 @@ export default {
     ...mapGetters({
       conversationAttributes: 'conversationAttributes/getConversationParams',
       canUserEndConversation: 'appConfig/getCanUserEndConversation',
+      cartItemsCount: 'appConfig/getCartItemsCount',
     }),
     canLeaveConversation() {
       return [
@@ -46,6 +47,12 @@ export default {
     },
     hasWidgetOptions() {
       return this.showPopoutButton || this.conversationStatus === 'open';
+    },
+    showCartButton() {
+      return (this.isIframe || this.isRNWebView) && this.cartItemsCount > 0;
+    },
+    cartBadgeLabel() {
+      return this.cartItemsCount > 99 ? '99+' : String(this.cartItemsCount);
     },
   },
   methods: {
@@ -73,6 +80,11 @@ export default {
     resolveConversation() {
       this.$store.dispatch('conversation/resolveConversation');
     },
+    openCart() {
+      if (IFrameHelper.isIFrame()) {
+        IFrameHelper.sendMessage({ event: 'open-cart' });
+      }
+    },
   },
 };
 </script>
@@ -99,6 +111,37 @@ export default {
       @click="popoutWindow"
     >
       <FluentIcon icon="open" size="22" class="text-n-slate-12" />
+    </button>
+    <button
+      v-if="showCartButton"
+      type="button"
+      class="relative button transparent compact"
+      :title="$t('HEADER.CART')"
+      :aria-label="$t('HEADER.CART')"
+      @click="openCart"
+    >
+      <svg
+        class="h-[22px] w-[22px] text-n-slate-12"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M3.5 5.5h1.2l.4 1.5h12.6a1 1 0 0 1 .98 1.2l-1.1 5.2a1.5 1.5 0 0 1-1.47 1.2H8.1a1.5 1.5 0 0 1-1.47-1.2L5.2 5.5H3.5"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="9" cy="18.5" r="1.15" fill="currentColor" />
+        <circle cx="15.5" cy="18.5" r="1.15" fill="currentColor" />
+      </svg>
+      <span
+        class="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-n-slate-12 px-1 text-[10px] font-semibold leading-none text-n-background"
+      >
+        {{ cartBadgeLabel }}
+      </span>
     </button>
     <button
       v-if="isIframe || isRNWebView"

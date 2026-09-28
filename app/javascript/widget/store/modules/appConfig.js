@@ -6,6 +6,7 @@ import {
   SET_WIDGET_COLOR,
   TOGGLE_WIDGET_OPEN,
   SET_ROUTE_UPDATE_STATE,
+  SET_CART_ITEMS_COUNT,
 } from '../types';
 
 const state = {
@@ -28,6 +29,7 @@ const state = {
   enableFileUpload: true,
   enableEmojiPicker: true,
   enableEndConversation: true,
+  cartItemsCount: 0,
 };
 
 export const getters = {
@@ -48,6 +50,7 @@ export const getters = {
   getShouldShowFilePicker: $state => $state.enableFileUpload,
   getShouldShowEmojiPicker: $state => $state.enableEmojiPicker,
   getCanUserEndConversation: $state => $state.enableEndConversation,
+  getCartItemsCount: $state => $state.cartItemsCount || 0,
 };
 
 export const actions = {
@@ -107,6 +110,9 @@ export const actions = {
     // See issue: https://github.com/chatwoot/chatwoot/issues/10736
     commit(SET_ROUTE_UPDATE_STATE, status);
   },
+  setCartItemsCount({ commit }, itemsCount) {
+    commit(SET_CART_ITEMS_COUNT, Number(itemsCount) || 0);
+  },
 };
 
 export const mutations = {
@@ -143,6 +149,9 @@ export const mutations = {
   },
   [SET_ROUTE_UPDATE_STATE]($state, status) {
     $state.isUpdatingRoute = status;
+  },
+  [SET_CART_ITEMS_COUNT]($state, itemsCount) {
+    $state.cartItemsCount = itemsCount;
   },
 };
 

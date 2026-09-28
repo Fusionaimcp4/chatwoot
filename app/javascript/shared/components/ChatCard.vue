@@ -1,6 +1,12 @@
 <script>
 import { mapActions } from 'vuex';
 import { IFrameHelper } from 'widget/helpers/utils';
+import { emitter } from 'shared/helpers/mitt';
+import {
+  needsSelection,
+  normalizeProductOptions,
+  OPEN_PRODUCT_OPTIONS,
+} from 'widget/helpers/productOptions';
 
 export default {
   props: {
@@ -46,14 +52,14 @@ export default {
         isInStock: false,
       };
     },
-    primaryAction() {
-      if (!this.actions?.length) return null;
-      return (
-        this.actions.find(action => action.type === 'link') || this.actions[0]
-      );
+    viewAction() {
+      return this.actions?.find(action => action.type === 'link') || null;
+    },
+    cartAction() {
+      return this.actions?.find(action => action.type === 'postback') || null;
     },
     isClickable() {
-      return Boolean(this.primaryAction);
+      return Boolean(this.viewAction);
     },
     similarProductsMessage() {
       const productName = (this.title || '').trim();
@@ -65,35 +71,86 @@ export default {
   },
   methods: {
     ...mapActions('conversation', ['sendMessage']),
-    activatePrimaryAction() {
-      const action = this.primaryAction;
-      if (!action) return;
+    normalizeUrl(value) {
+      if (!value || typeof value !== 'string') return '';
+      const markdownMatch = value.match(/\((https?:\/\/[^)\s]+)\)/);
+      if (markdownMatch) return markdownMatch[1];
+      return value.trim();
+    },
+    parseCartPayload(action) {
+      const raw = action?.payload;
+      if (raw == null || raw === '') return null;
+      if (typeof raw === 'object') return raw;
 
-      if (action.type === 'link' && action.uri) {
-        window.open(action.uri, '_blank', 'noopener,noreferrer');
+      try {
+        let parsed = JSON.parse(String(raw));
+        if (typeof parsed === 'string') {
+          parsed = JSON.parse(parsed);
+        }
+        return typeof parsed === 'object' && parsed !== null ? parsed : null;
+      } catch {
+        return null;
+      }
+    },
+    sendAddToCart({ provider, productId, variantId, quantity }) {
+      IFrameHelper.sendMessage({
+        event: 'add-to-cart',
+        data: {
+          provider: provider || 'woocommerce',
+          productId,
+          variantId,
+          quantity: quantity || 1,
+        },
+      });
+    },
+    addToCart() {
+      const payload = this.parseCartPayload(this.cartAction);
+      if (!payload) return;
+
+      const actionType = payload.action || payload.type;
+      if (actionType && actionType !== 'add_to_cart') return;
+
+      const model = normalizeProductOptions({
+        ...payload,
+        title: payload.title || this.title,
+      });
+
+      if (needsSelection(model)) {
+        emitter.emit(OPEN_PRODUCT_OPTIONS, {
+          ...model,
+          mediaUrl: this.mediaUrl,
+          title: model.title || this.title,
+        });
         return;
       }
 
-      if (action.type === 'postback' && IFrameHelper.isIFrame()) {
-        IFrameHelper.sendMessage({
-          event: 'postback',
-          data: { payload: action.payload },
-        });
-      }
+      // Single / no options: add with productId (+ sole variant id when present).
+      const singleVariant = model.variants.find(v => v.available);
+      this.sendAddToCart({
+        provider: model.provider,
+        productId: model.productId,
+        variantId: singleVariant?.id,
+        quantity: model.quantity,
+      });
+    },
+    activateViewProduct() {
+      const uri = this.normalizeUrl(this.viewAction?.uri);
+      if (!uri) return;
+      window.open(uri, '_blank', 'noopener,noreferrer');
     },
     onCardActivate() {
-      this.activatePrimaryAction();
+      this.activateViewProduct();
     },
     onCardKeydown(event) {
       if (!this.isClickable) return;
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        this.activatePrimaryAction();
+        this.activateViewProduct();
       }
     },
     onPrimaryButtonClick(event) {
       event.stopPropagation();
-      this.activatePrimaryAction();
+      this.addToCart();
     },
     async onAiButtonClick(event) {
       event.stopPropagation();
@@ -136,60 +193,60 @@ export default {
       <div
         class="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-center justify-between px-2 pb-2"
       >
+        <!-- Find similar products -->
         <button
           type="button"
-          class="pointer-events-auto flex h-6 w-6 items-center justify-center rounded-full border border-n-weak bg-n-background text-n-slate-12 shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-n-solid-3"
-          aria-label="Find similar products"
+          class="pointer-events-auto flex h-6 w-6 items-center justify-center rounded-full border border-n-weak bg-n-background shadow-sm transition-transform duration-150 hover:scale-110 disabled:opacity-50 dark:bg-n-solid-3"
+          :aria-label="$t('PRODUCT_CARD.FIND_SIMILAR')"
           :disabled="isSendingSimilar"
           @click="onAiButtonClick"
         >
           <svg
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="currentColor"
             xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 20 18"
+            width="20"
+            height="20"
             aria-hidden="true"
           >
-            <path
-              d="M10.5 3.5c.2 1.9 1.1 3.4 2.5 4.5-1.4 1.1-2.3 2.6-2.5 4.5-.2-1.9-1.1-3.4-2.5-4.5 1.4-1.1 2.3-2.6 2.5-4.5Z"
-            />
-            <path
-              d="M17.5 2.5c.12 1.15.68 2.05 1.5 2.7-.82.65-1.38 1.55-1.5 2.7-.12-1.15-.68-2.05-1.5-2.7.82-.65 1.38-1.55 1.5-2.7Z"
-            />
-            <path
-              d="M16.5 12c.15 1.4.85 2.5 1.9 3.3-1.05.8-1.75 1.9-1.9 3.3-.15-1.4-.85-2.5-1.9-3.3 1.05-.8 1.75-1.9 1.9-3.3Z"
-            />
+            <g stroke="#4B5563" stroke-linecap="round" stroke-width="1.45">
+              <path
+                stroke-linejoin="round"
+                d="M13.168 4.234a3.85 3.85 0 0 1-2.435 2.434L9.74 7l.993.332a3.85 3.85 0 0 1 2.435 2.435l.332.993.332-.993a3.85 3.85 0 0 1 2.435-2.435L17.261 7l-.994-.332a3.85 3.85 0 0 1-2.435-2.434l-.332-.995z"
+              />
+              <path
+                d="M4.5 6.457A3.5 3.5 0 0 1 2.958 8 3.5 3.5 0 0 1 4.5 9.542 3.5 3.5 0 0 1 6.043 8 3.5 3.5 0 0 1 4.5 6.457Z"
+              />
+              <path
+                d="M8.517 2.095c-.21.398-.53.729-.921.952.397.21.728.53.951.921.21-.398.531-.728.922-.951a2.4 2.4 0 0 1-.952-.922Z"
+              />
+              <path stroke-linejoin="round" d="M10.885 9.615 3.5 17" />
+            </g>
           </svg>
         </button>
 
+        <!-- Add to cart -->
         <button
-          v-if="primaryAction"
+          v-if="cartAction"
           type="button"
-          class="pointer-events-auto flex h-6 w-6 items-center justify-center rounded-full border border-n-weak bg-n-background text-n-slate-12 shadow-sm transition-opacity hover:opacity-90 dark:bg-n-solid-3"
-          :aria-label="primaryAction.text || 'View product'"
+          class="pointer-events-auto flex h-6 w-6 items-center justify-center rounded-full border border-n-weak bg-n-background shadow-sm transition-transform duration-150 hover:scale-110 dark:bg-n-solid-3"
+          :aria-label="$t('PRODUCT_CARD.ADD_TO_CART')"
           @click="onPrimaryButtonClick"
         >
           <svg
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
             aria-hidden="true"
           >
             <path
-              d="M3.5 5.5h1.2l.4 1.5h12.6a1 1 0 0 1 .98 1.2l-1.1 5.2a1.5 1.5 0 0 1-1.47 1.2H8.1a1.5 1.5 0 0 1-1.47-1.2L5.2 5.5H3.5"
-              stroke="currentColor"
-              stroke-width="2"
+              stroke="#4B5563"
               stroke-linecap="round"
               stroke-linejoin="round"
-            />
-            <circle cx="9" cy="18.5" r="1.25" fill="currentColor" />
-            <circle cx="15.5" cy="18.5" r="1.25" fill="currentColor" />
-            <path
-              d="M17.5 3.5v4M15.5 5.5h4"
-              stroke="currentColor"
               stroke-width="2"
-              stroke-linecap="round"
+              d="M1.004 5.49H3.85l3.132 11.114c.082.283.245.538.49.713.232.174.532.269.817.269h8.416c.3 0 .585-.095.83-.27.232-.174.409-.43.49-.712l1.09-3.877m.401-10.717v6.975m3.48-3.495h-6.96M13.5 8.85H4.803m3.733 13.14c.412 0 .75-.338.75-.75a.75.75 0 0 0-.75-.75.75.75 0 0 0-.75.75c0 .412.337.75.75.75m8.25 0c.412 0 .75-.338.75-.75a.75.75 0 0 0-.75-.75c0 .412.337.75.75.75"
             />
           </svg>
         </button>

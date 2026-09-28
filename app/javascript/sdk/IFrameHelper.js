@@ -36,6 +36,7 @@ import {
 import { getWidgetLayout, isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
 import addHours from 'date-fns/addHours';
+import { cart, DEFAULT_PROVIDER } from './cart';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
   setCookieWithDomain('cw_conversation', cookieContent, {
@@ -179,6 +180,14 @@ export const IFrameHelper = {
         widgetLayout: message.config.channelConfig.widgetSettings?.layout,
       });
       IFrameHelper.toggleCloseButton();
+      cart
+        .getItemsCount({ provider: DEFAULT_PROVIDER })
+        .then(itemsCount => {
+          IFrameHelper.sendMessage('cart-updated', { itemsCount });
+        })
+        .catch(() => {
+          // Cart provider may be unavailable on non-storefront pages.
+        });
 
       if (window.$chatwoot.user) {
         IFrameHelper.sendMessage('set-user', window.$chatwoot.user);
@@ -221,6 +230,25 @@ export const IFrameHelper = {
         eventName: CHATWOOT_POSTBACK,
         data,
       });
+    },
+
+    'add-to-cart': async ({ data = {} }) => {
+      try {
+        const { itemsCount } = await cart.addItem(data);
+        IFrameHelper.sendMessage('cart-updated', { itemsCount });
+      } catch (error) {
+        dispatchWindowEvent({
+          eventName: CHATWOOT_ERROR,
+          data: {
+            type: 'add_to_cart_failed',
+            message: error?.message || 'Unable to add item to cart',
+          },
+        });
+      }
+    },
+
+    'open-cart': ({ data = {} } = {}) => {
+      cart.openCart({ provider: data.provider || DEFAULT_PROVIDER });
     },
 
     toggleBubble: state => {
