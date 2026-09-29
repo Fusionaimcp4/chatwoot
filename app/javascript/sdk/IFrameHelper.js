@@ -36,7 +36,7 @@ import {
 import { getWidgetLayout, isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
 import addHours from 'date-fns/addHours';
-import { cart, DEFAULT_PROVIDER } from './cart';
+import { cart } from './cart';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
   setCookieWithDomain('cw_conversation', cookieContent, {
@@ -181,7 +181,7 @@ export const IFrameHelper = {
       });
       IFrameHelper.toggleCloseButton();
       cart
-        .getItemsCount({ provider: DEFAULT_PROVIDER })
+        .getItemsCount()
         .then(itemsCount => {
           IFrameHelper.sendMessage('cart-updated', { itemsCount });
         })
@@ -248,7 +248,7 @@ export const IFrameHelper = {
     },
 
     'open-cart': ({ data = {} } = {}) => {
-      cart.openCart({ provider: data.provider || DEFAULT_PROVIDER });
+      cart.openCart({ provider: data.provider });
     },
 
     toggleBubble: state => {

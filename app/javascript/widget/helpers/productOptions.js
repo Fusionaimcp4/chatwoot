@@ -15,8 +15,18 @@ const normalizeToken = value =>
 
 const toId = value => {
   if (value == null || value === '') return null;
-  const asNumber = Number(value);
-  return Number.isNaN(asNumber) ? null : asNumber;
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  const asString = String(value).trim();
+  if (!asString) return null;
+
+  // Opaque provider IDs (e.g. Shopify GIDs) must stay strings.
+  if (!/^\d+$/.test(asString)) return asString;
+
+  const asNumber = Number(asString);
+  return Number.isNaN(asNumber) ? asString : asNumber;
 };
 
 /**
