@@ -57,6 +57,7 @@ debug_worker:
 	overmind connect worker
 
 docker: 
-	docker build -t $(APP_NAME) -f ./docker/Dockerfile .
+	@test -n "$(VOXE_BASE_URL)" || (echo "VOXE_BASE_URL must be set before building the SDK-containing image." && exit 1)
+	docker build --build-arg VOXE_BASE_URL=$(VOXE_BASE_URL) -t $(APP_NAME) -f ./docker/Dockerfile .
 
 .PHONY: setup db_create db_migrate db_seed db_reset db console server burn docker run force_run force_run_tunnel debug debug_worker

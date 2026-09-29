@@ -19,6 +19,11 @@ ENV RAILS_SERVE_STATIC_FILES ${RAILS_SERVE_STATIC_FILES}
 ARG RAILS_ENV=production
 ENV RAILS_ENV ${RAILS_ENV}
 
+# Public Voxe origin compiled into the browser SDK during asset precompilation.
+# This is deployment configuration, not a secret and not merchant configuration.
+ARG VOXE_BASE_URL=""
+ENV VOXE_BASE_URL=${VOXE_BASE_URL}
+
 ARG NODE_OPTIONS="--max-old-space-size=4096 --openssl-legacy-provider"
 ENV NODE_OPTIONS ${NODE_OPTIONS}
 

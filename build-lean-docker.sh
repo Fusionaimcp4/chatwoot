@@ -4,6 +4,11 @@
 
 set -e
 
+if [ -z "${VOXE_BASE_URL:-}" ]; then
+  echo "VOXE_BASE_URL must be set before building the SDK-containing image."
+  exit 1
+fi
+
 echo "=== Creating lean-docker branch ==="
 git checkout -b lean-docker 2>/dev/null || git checkout lean-docker
 
@@ -19,7 +24,11 @@ echo "=== Committing changes ==="
 git commit -m "Create lean Docker build excluding enterprise code and .md files" || echo "No changes to commit"
 
 echo "=== Building Docker image ==="
-docker build -f docker/Dockerfile -t mcp4ai/voxedesk-selfhost:latest .
+docker build \
+  --build-arg "VOXE_BASE_URL=${VOXE_BASE_URL}" \
+  -f docker/Dockerfile \
+  -t mcp4ai/voxedesk-selfhost:latest \
+  .
 
 echo "=== Build complete! ==="
 echo "To push to Docker Hub, run:"

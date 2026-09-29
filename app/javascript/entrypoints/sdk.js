@@ -17,6 +17,7 @@ import {
 } from '../sdk/DOMHelpers';
 import { setCookieWithDomain } from '../sdk/cookieHelpers';
 import { SDK_SET_BUBBLE_VISIBILITY } from 'shared/constants/sharedFrameEvents';
+import { initializeSmartPageContext } from '../sdk/smartPageContext';
 
 const runSDK = ({ baseUrl, websiteToken }) => {
   if (window.$chatwoot) {
@@ -213,6 +214,11 @@ const runSDK = ({ baseUrl, websiteToken }) => {
   IFrameHelper.createFrame({
     baseUrl,
     websiteToken,
+  });
+
+  initializeSmartPageContext({
+    websiteToken,
+    baseUrl,
   });
 };
 
