@@ -107,14 +107,15 @@ export const claimSmartPageContextOwnership = (root = getRoot()) => {
   return true;
 };
 
-const getEnabledFields = config => {
+// Returns null when smart_page_context is missing/malformed (no-op, no deletes).
+// When valid: { fields } maps each SPC key to true only if master enabled and field === true.
+const parseSmartPageContextConfig = config => {
   const smartPageContext =
     config?.smartPageContext || config?.smart_page_context;
   if (
     !smartPageContext ||
     typeof smartPageContext !== 'object' ||
     Array.isArray(smartPageContext) ||
-    smartPageContext.enabled !== true ||
     !smartPageContext.fields ||
     typeof smartPageContext.fields !== 'object' ||
     Array.isArray(smartPageContext.fields)
@@ -122,12 +123,27 @@ const getEnabledFields = config => {
     return null;
   }
 
+  const masterEnabled = smartPageContext.enabled === true;
   const fields = SMART_PAGE_CONTEXT_FIELDS.reduce((result, field) => {
-    result[field] = smartPageContext.fields[field] === true;
+    result[field] = masterEnabled && smartPageContext.fields[field] === true;
     return result;
   }, {});
 
-  return Object.values(fields).some(Boolean) ? fields : null;
+  return { fields };
+};
+
+const deleteDisabledAttributes = (root, fields) => {
+  const deleteCustomAttribute = root.$chatwoot?.deleteCustomAttribute;
+  if (typeof deleteCustomAttribute !== 'function') return;
+
+  SMART_PAGE_CONTEXT_FIELDS.forEach(field => {
+    if (fields[field] === true) return;
+    try {
+      deleteCustomAttribute.call(root.$chatwoot, field);
+    } catch (_error) {
+      // Attribute may already be absent; never block widget init.
+    }
+  });
 };
 
 const sendPageContext = (root, fields) => {
@@ -141,21 +157,35 @@ const sendPageContext = (root, fields) => {
   return true;
 };
 
-const applySmartPageContext = (root, config) => {
-  const fields = getEnabledFields(config);
-  if (!fields) return false;
+const syncSmartPageContext = (root, fields) => {
+  deleteDisabledAttributes(root, fields);
 
-  let sentInitial = false;
-  const sendFromReady = () => {
-    if (sentInitial) return;
-    if (sendPageContext(root, fields)) sentInitial = true;
+  const enabledFields = SMART_PAGE_CONTEXT_FIELDS.reduce((result, field) => {
+    if (fields[field] === true) result[field] = true;
+    return result;
+  }, {});
+
+  if (Object.keys(enabledFields).length) {
+    sendPageContext(root, enabledFields);
+  }
+};
+
+const applySmartPageContext = (root, config) => {
+  const parsed = parseSmartPageContextConfig(config);
+  if (!parsed) return false;
+
+  let syncedInitial = false;
+  const syncFromReady = () => {
+    if (syncedInitial) return;
+    syncSmartPageContext(root, parsed.fields);
+    syncedInitial = true;
   };
 
-  root.addEventListener?.('chatwoot:ready', sendFromReady);
+  root.addEventListener?.('chatwoot:ready', syncFromReady);
   root.addEventListener?.('chatwoot:opened', () => {
-    sendPageContext(root, fields);
+    syncSmartPageContext(root, parsed.fields);
   });
-  if (root.$chatwoot?.hasLoaded) sendFromReady();
+  if (root.$chatwoot?.hasLoaded) syncFromReady();
   return true;
 };
 
