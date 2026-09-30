@@ -2,7 +2,6 @@ const SMART_PAGE_CONTEXT_OWNER = '__voxeSmartPageContextOwner';
 const SMART_PAGE_CONTEXT_OWNER_SDK = 'sdk';
 const RUNTIME_PATH = '/widget/runtime.js';
 const CHAT_START_URL_KEY = 'voxe_chat_start_url';
-const CONFIG_TIMEOUT_MS = 5000;
 
 export const SMART_PAGE_CONTEXT_FIELDS = [
   'page_title',
@@ -13,16 +12,9 @@ export const SMART_PAGE_CONTEXT_FIELDS = [
   'page_type',
 ];
 
-export const DEFAULT_VOXE_BASE_URL =
-  typeof __VOXE_BASE_URL__ === 'string' ? __VOXE_BASE_URL__ : '';
-
-const getRoot = () =>
-  typeof window === 'undefined' ? globalThis : window;
+const getRoot = () => window;
 
 const cleanUrl = url => (url ? String(url).split('#')[0] : '');
-
-const normalizeBaseUrl = value =>
-  typeof value === 'string' ? value.trim().replace(/\/+$/, '') : '';
 
 export const getPageType = (root = getRoot()) => {
   const path = (root.location?.pathname || '').toLowerCase();
@@ -52,9 +44,7 @@ export const getChatStartUrl = (root = getRoot()) => {
     if (storage && !storage.getItem(CHAT_START_URL_KEY)) {
       storage.setItem(CHAT_START_URL_KEY, cleanUrl(href));
     }
-    return storage
-      ? storage.getItem(CHAT_START_URL_KEY)
-      : cleanUrl(href);
+    return storage ? storage.getItem(CHAT_START_URL_KEY) : cleanUrl(href);
   } catch (_error) {
     return cleanUrl(href);
   }
@@ -117,76 +107,9 @@ export const claimSmartPageContextOwnership = (root = getRoot()) => {
   return true;
 };
 
-const getFetch = root => {
-  if (typeof root.fetch === 'function') return root.fetch.bind(root);
-  if (typeof fetch === 'function') return fetch;
-  return null;
-};
-
-const getAbortController = root => {
-  if (typeof root.AbortController === 'function') {
-    return root.AbortController;
-  }
-  if (typeof AbortController === 'function') return AbortController;
-  return null;
-};
-
-export const fetchSmartPageContextConfig = async ({
-  websiteToken,
-  baseUrl,
-  voxeBaseUrl = DEFAULT_VOXE_BASE_URL,
-  root = getRoot(),
-}) => {
-  const normalizedToken =
-    typeof websiteToken === 'string' ? websiteToken.trim() : '';
-  const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
-  const normalizedVoxeBaseUrl = normalizeBaseUrl(voxeBaseUrl);
-  const fetchFn = getFetch(root);
-
-  if (
-    !normalizedToken ||
-    !normalizedBaseUrl ||
-    !normalizedVoxeBaseUrl ||
-    !fetchFn
-  ) {
-    return null;
-  }
-
-  const url =
-    `${normalizedVoxeBaseUrl}/api/widget/runtime-config` +
-    `?website_token=${encodeURIComponent(normalizedToken)}` +
-    `&base_url=${encodeURIComponent(normalizedBaseUrl)}`;
-  const AbortControllerImpl = getAbortController(root);
-  const controller = AbortControllerImpl ? new AbortControllerImpl() : null;
-  let timeoutId;
-
-  try {
-    const response = await Promise.race([
-      fetchFn(url, {
-        method: 'GET',
-        credentials: 'omit',
-        cache: 'no-store',
-        ...(controller ? { signal: controller.signal } : {}),
-      }),
-      new Promise(resolve => {
-        timeoutId = setTimeout(() => {
-          controller?.abort();
-          resolve(null);
-        }, CONFIG_TIMEOUT_MS);
-      }),
-    ]);
-
-    if (!response?.ok) return null;
-    return await response.json();
-  } catch (_error) {
-    return null;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-};
-
 const getEnabledFields = config => {
-  const smartPageContext = config?.smartPageContext;
+  const smartPageContext =
+    config?.smartPageContext || config?.smart_page_context;
   if (
     !smartPageContext ||
     typeof smartPageContext !== 'object' ||
@@ -236,24 +159,10 @@ const applySmartPageContext = (root, config) => {
   return true;
 };
 
-export const initializeSmartPageContext = ({
-  websiteToken,
-  baseUrl,
-  voxeBaseUrl = DEFAULT_VOXE_BASE_URL,
-  root = getRoot(),
-}) => {
+export const initializeSmartPageContext = ({ config, root = getRoot() }) => {
   if (!claimSmartPageContextOwnership(root)) return false;
 
-  void fetchSmartPageContextConfig({
-    websiteToken,
-    baseUrl,
-    voxeBaseUrl,
-    root,
-  }).then(config => {
-    if (config) applySmartPageContext(root, config);
-  });
+  applySmartPageContext(root, config);
 
   return true;
 };
-/* global __VOXE_BASE_URL__ */
-

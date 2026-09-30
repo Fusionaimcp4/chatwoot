@@ -37,6 +37,7 @@ import { getWidgetLayout, isFlatWidgetStyle } from './settingsHelper';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
 import addHours from 'date-fns/addHours';
 import { cart } from './cart';
+import { initializeSmartPageContext } from './smartPageContext';
 
 const updateAuthCookie = (cookieContent, baseDomain = '') =>
   setCookieWithDomain('cw_conversation', cookieContent, {
@@ -157,6 +158,10 @@ export const IFrameHelper = {
     loaded: message => {
       updateAuthCookie(message.config.authToken, window.$chatwoot.baseDomain);
       window.$chatwoot.hasLoaded = true;
+      initializeSmartPageContext({
+        config: message.config.channelConfig?.widgetSettings,
+        root: window,
+      });
       const campaignsSnoozedTill = Cookies.get('cw_snooze_campaigns_till');
       IFrameHelper.sendMessage('config-set', {
         locale: window.$chatwoot.locale,

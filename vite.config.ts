@@ -44,9 +44,6 @@ if (isLibraryMode) {
 
 export default defineConfig({
   plugins: plugins,
-  define: {
-    __VOXE_BASE_URL__: JSON.stringify(process.env.VOXE_BASE_URL || ''),
-  },
   build: {
     rollupOptions: {
       output: {

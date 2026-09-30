@@ -5,20 +5,34 @@ class Internal::Api::V1::WidgetConfigsController < Api::BaseController
 
   def show
     render json: {
-      hideBranding: @web_widget.hide_branding || false
+      hideBranding: @web_widget.hide_branding || false,
+      smartPageContext: @web_widget.widget_settings_with_defaults['smart_page_context']
     }
   end
 
   def update
-    if update_params[:hideBranding].nil?
-      render json: { error: 'hideBranding parameter is required' }, status: :bad_request
+    params_to_update = update_params
+    if params_to_update[:hideBranding].nil? && smart_page_context_param.nil?
+      render json: { error: 'hideBranding or smartPageContext parameter is required' }, status: :bad_request
       return
     end
 
-    @web_widget.update!(hide_branding: ActiveModel::Type::Boolean.new.cast(update_params[:hideBranding]))
+    updates = {}
+    unless params_to_update[:hideBranding].nil?
+      updates[:hide_branding] = ActiveModel::Type::Boolean.new.cast(params_to_update[:hideBranding])
+    end
+
+    if smart_page_context_param
+      updates[:widget_settings] = @web_widget.widget_settings_with_defaults.merge(
+        'smart_page_context' => normalize_smart_page_context(smart_page_context_param)
+      )
+    end
+
+    @web_widget.update!(updates)
 
     render json: {
-      hideBranding: @web_widget.hide_branding || false
+      hideBranding: @web_widget.hide_branding || false,
+      smartPageContext: @web_widget.widget_settings_with_defaults['smart_page_context']
     }
   end
 
@@ -55,7 +69,30 @@ class Internal::Api::V1::WidgetConfigsController < Api::BaseController
   end
 
   def update_params
-    params.permit(:hideBranding)
+    params.permit(
+      :hideBranding,
+      smartPageContext: [:enabled, { fields: Channel::WebWidget::SMART_PAGE_CONTEXT_FIELDS }],
+      smart_page_context: [:enabled, { fields: Channel::WebWidget::SMART_PAGE_CONTEXT_FIELDS }]
+    )
+  end
+
+  def smart_page_context_param
+    update_params[:smartPageContext] || update_params[:smart_page_context]
+  end
+
+  def normalize_smart_page_context(raw)
+    fields = raw[:fields] || raw['fields'] || {}
+    {
+      'enabled' => raw[:enabled] == true || raw['enabled'] == true,
+      'fields' => Channel::WebWidget::SMART_PAGE_CONTEXT_FIELDS.index_with do |field|
+        value = if fields.respond_to?(:key?) && fields.key?(field)
+                  fields[field]
+                elsif fields.respond_to?(:key?) && fields.key?(field.to_sym)
+                  fields[field.to_sym]
+                end
+        value.nil? ? true : value == true
+      end
+    }
   end
 end
 

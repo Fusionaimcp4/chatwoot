@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-      args:
-        VOXE_BASE_URL: ${VOXE_BASE_URL:?Set VOXE_BASE_URL in .env before building}
     env_file: .env
     volumes:
       - storage_data:/app/storage

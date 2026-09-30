@@ -35,10 +35,25 @@ class Channel::WebWidget < ApplicationRecord
   self.table_name = 'channel_web_widgets'
   WIDGET_LAYOUTS = %w[compact expanded].freeze
   DEFAULT_WIDGET_LAYOUT = 'compact'
+  SMART_PAGE_CONTEXT_FIELDS = %w[
+    page_title
+    current_page_url
+    last_context_update_at
+    chat_start_url
+    referrer
+    page_type
+  ].freeze
+  DEFAULT_SMART_PAGE_CONTEXT = {
+    'enabled' => false,
+    'fields' => SMART_PAGE_CONTEXT_FIELDS.index_with { true }
+  }.freeze
 
   EDITABLE_ATTRS = [:website_url, :widget_color, :welcome_title, :welcome_tagline, :reply_time, :pre_chat_form_enabled,
                     :continuity_via_email, :hmac_mandatory, :allowed_domains, :hide_branding,
-                    { widget_settings: [:layout] },
+                    { widget_settings: [
+                      :layout,
+                      { smart_page_context: [:enabled, { fields: SMART_PAGE_CONTEXT_FIELDS }] }
+                    ] },
                     { pre_chat_form_options: [:pre_chat_message, :require_email,
                                               { pre_chat_fields:
                                                 [:field_type, :label, :placeholder, :name, :enabled, :type, :enabled, :required,
@@ -64,12 +79,15 @@ class Channel::WebWidget < ApplicationRecord
   enum reply_time: { in_a_few_minutes: 0, in_a_few_hours: 1, in_a_day: 2 }
 
   def widget_layout
-    layout = widget_settings.to_h['layout']
+    layout = widget_settings.to_h.stringify_keys['layout']
     WIDGET_LAYOUTS.include?(layout) ? layout : DEFAULT_WIDGET_LAYOUT
   end
 
   def widget_settings_with_defaults
-    { 'layout' => widget_layout }
+    settings = widget_settings.respond_to?(:to_h) ? widget_settings.to_h.deep_stringify_keys : {}
+    settings['layout'] = widget_layout
+    settings['smart_page_context'] = normalized_smart_page_context(settings['smart_page_context'])
+    settings
   end
 
   def name
@@ -117,11 +135,28 @@ class Channel::WebWidget < ApplicationRecord
   end
 
   def normalize_widget_settings
-    settings = widget_settings.respond_to?(:to_h) ? widget_settings.to_h.stringify_keys : {}
-    layout = settings['layout']
+    incoming = widget_settings.respond_to?(:to_h) ? widget_settings.to_h.deep_stringify_keys : {}
+    previous = if persisted? && respond_to?(:widget_settings_was)
+                 widget_settings_was.to_h.deep_stringify_keys
+               else
+                 {}
+               end
+    settings = previous.deep_merge(incoming)
+    settings['layout'] = WIDGET_LAYOUTS.include?(settings['layout']) ? settings['layout'] : DEFAULT_WIDGET_LAYOUT
+    settings['smart_page_context'] = normalized_smart_page_context(settings['smart_page_context'])
 
-    self.widget_settings = {
-      'layout' => WIDGET_LAYOUTS.include?(layout) ? layout : DEFAULT_WIDGET_LAYOUT
+    self.widget_settings = settings
+  end
+
+  def normalized_smart_page_context(raw)
+    input = raw.respond_to?(:to_h) ? raw.to_h.deep_stringify_keys : {}
+    input_fields = input['fields'].respond_to?(:to_h) ? input['fields'].to_h.deep_stringify_keys : {}
+
+    {
+      'enabled' => input['enabled'] == true,
+      'fields' => SMART_PAGE_CONTEXT_FIELDS.index_with do |field|
+        input_fields.key?(field) ? input_fields[field] == true : true
+      end
     }
   end
 

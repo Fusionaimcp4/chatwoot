@@ -13,6 +13,8 @@ describe '/widget', type: :request do
       get widget_url(website_token: web_widget.website_token)
       expect(response).to be_successful
       expect(response.body).not_to include(token)
+      expect(response.body).to include('smart_page_context')
+      expect(response.body).to include('"enabled":false')
     end
 
     it 'renders the page correctly when called with website_token and cw_conversation' do

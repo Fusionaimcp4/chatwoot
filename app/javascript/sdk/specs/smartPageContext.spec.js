@@ -1,6 +1,5 @@
 import {
   collectSmartPageContext,
-  fetchSmartPageContextConfig,
   getChatStartUrl,
   getPageType,
   hasLegacyRuntimeScript,
@@ -47,23 +46,26 @@ const createRoot = ({
 };
 
 const enabledConfig = fields => ({
-  version: 1,
   smartPageContext: {
     enabled: true,
     fields,
   },
 });
 
-const waitForAsyncWork = () => new Promise(resolve => setTimeout(resolve, 0));
-
 describe('Smart Page Context SDK', () => {
   it('does not collect or send when disabled', () => {
     const root = createRoot();
-    root.document = undefined;
+    const config = {
+      smartPageContext: {
+        enabled: false,
+        fields: { page_title: true },
+      },
+    };
 
-    expect(
-      collectSmartPageContext({ page_title: false, referrer: false }, root)
-    ).toEqual({});
+    initializeSmartPageContext({ config, root });
+
+    expect(root.$chatwoot.setCustomAttributes).not.toHaveBeenCalled();
+    expect(root.fetch).not.toHaveBeenCalled();
   });
 
   it('collects exactly the six enabled fields', () => {
@@ -134,79 +136,56 @@ describe('Smart Page Context SDK', () => {
     expect(getPageType(createRoot({ pathname }))).toBe(expected);
   });
 
-  it('uses the direct Voxe config endpoint and fail-safely handles fetch failure', async () => {
-    const fetchFn = vi.fn().mockRejectedValue(new Error('offline'));
-    const root = createRoot({ fetch: fetchFn });
+  it('consumes configuration supplied by Chatwoot without a Voxe request', () => {
+    const root = createRoot({ hasLoaded: true });
 
     initializeSmartPageContext({
-      websiteToken: 'website-token',
-      baseUrl: 'https://chat.voxedesk.com/',
-      voxeBaseUrl: 'https://oldvoxe.mcp4.ai/',
+      config: enabledConfig({ page_title: true, page_type: true }),
       root,
     });
-    await waitForAsyncWork();
 
-    expect(fetchFn).toHaveBeenCalledWith(
-      'https://oldvoxe.mcp4.ai/api/widget/runtime-config?website_token=website-token&base_url=https%3A%2F%2Fchat.voxedesk.com',
-      expect.objectContaining({
-        method: 'GET',
-        credentials: 'omit',
-        cache: 'no-store',
-      })
+    expect(root.fetch).not.toHaveBeenCalled();
+    expect(root.$chatwoot.setCustomAttributes).toHaveBeenCalledWith(
+      expect.objectContaining({ page_title: 'Pricing', page_type: 'pricing' })
     );
-    expect(root.$chatwoot.setCustomAttributes).not.toHaveBeenCalled();
   });
 
-  it('does not send malformed configuration', async () => {
-    const root = createRoot({
-      fetch: vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ smartPageContext: { enabled: true } }),
-      }),
-    });
+  it('waits for ready, then refreshes context when the widget opens', () => {
+    const root = createRoot();
 
     initializeSmartPageContext({
-      websiteToken: 'website-token',
-      baseUrl: 'https://chat.voxedesk.com',
-      voxeBaseUrl: 'https://voxedesk.com',
+      config: enabledConfig({ page_title: true, page_type: true }),
       root,
     });
-    await waitForAsyncWork();
 
     expect(root.$chatwoot.setCustomAttributes).not.toHaveBeenCalled();
+    root.$chatwoot.hasLoaded = true;
+    root.dispatch('chatwoot:ready');
+    root.dispatch('chatwoot:opened');
+
+    expect(root.$chatwoot.setCustomAttributes).toHaveBeenCalledTimes(2);
+    expect(root.$chatwoot.setCustomAttributes).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ page_title: 'Pricing', page_type: 'pricing' })
+    );
   });
 
-  it('does not collect or send when the configuration disables SPC', async () => {
-    const root = createRoot({
-      fetch: vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(
-            enabledConfig({ page_title: false, current_page_url: false })
-          ),
-      }),
-    });
-    root.fetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          version: 1,
-          smartPageContext: {
-            enabled: false,
-            fields: { page_title: true },
-          },
-        }),
-    });
+  it('accepts the snake_case widget-settings key', () => {
+    const root = createRoot({ hasLoaded: true });
 
     initializeSmartPageContext({
-      websiteToken: 'website-token',
-      baseUrl: 'https://chat.voxedesk.com',
-      voxeBaseUrl: 'https://voxedesk.com',
+      config: {
+        smart_page_context: {
+          enabled: true,
+          fields: { current_page_url: true },
+        },
+      },
       root,
     });
-    await waitForAsyncWork();
 
-    expect(root.$chatwoot.setCustomAttributes).not.toHaveBeenCalled();
+    expect(root.$chatwoot.setCustomAttributes).toHaveBeenCalledWith({
+      current_page_url: 'https://merchant.example/pricing?plan=team',
+    });
   });
 
   it('abstains when a legacy runtime script is present', () => {
@@ -218,9 +197,7 @@ describe('Smart Page Context SDK', () => {
     expect(hasLegacyRuntimeScript(root)).toBe(true);
     expect(
       initializeSmartPageContext({
-        websiteToken: 'website-token',
-        baseUrl: 'https://chat.voxedesk.com',
-        voxeBaseUrl: 'https://voxedesk.com',
+        config: enabledConfig({ page_title: true }),
         root,
       })
     ).toBe(false);
@@ -229,71 +206,18 @@ describe('Smart Page Context SDK', () => {
 
   it('abstains when runtime ownership is already claimed', () => {
     const root = createRoot();
-    root.__voxeSmartPageContextOwner = 'runtime';
+    Object.defineProperty(root, '__voxeSmartPageContextOwner', {
+      configurable: true,
+      value: 'runtime',
+      writable: true,
+    });
 
     expect(
       initializeSmartPageContext({
-        websiteToken: 'website-token',
-        baseUrl: 'https://chat.voxedesk.com',
-        voxeBaseUrl: 'https://voxedesk.com',
+        config: enabledConfig({ page_title: true }),
         root,
       })
     ).toBe(false);
     expect(root.fetch).not.toHaveBeenCalled();
-  });
-
-  it('claims ownership and sends contact attributes on ready and opened', async () => {
-    const root = createRoot({
-      fetch: vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(
-            enabledConfig({ page_title: true, page_type: true })
-          ),
-      }),
-    });
-
-    expect(
-      initializeSmartPageContext({
-        websiteToken: 'website-token',
-        baseUrl: 'https://chat.voxedesk.com',
-        voxeBaseUrl: 'https://voxedesk.com',
-        root,
-      })
-    ).toBe(true);
-    expect(root.__voxeSmartPageContextOwner).toBe('sdk');
-    await waitForAsyncWork();
-
-    expect(root.$chatwoot.setCustomAttributes).not.toHaveBeenCalled();
-    root.$chatwoot.hasLoaded = true;
-    root.dispatch('chatwoot:ready');
-    root.dispatch('chatwoot:opened');
-
-    expect(root.$chatwoot.setCustomAttributes).toHaveBeenCalledTimes(2);
-    expect(root.$chatwoot.setConversationCustomAttributes).toBeUndefined();
-    expect(root.$chatwoot.setCustomAttributes).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({ page_title: 'Pricing', page_type: 'pricing' })
-    );
-  });
-
-  it('uses production Voxe for production SDK configuration', async () => {
-    const fetchFn = vi.fn().mockResolvedValue({
-      ok: false,
-      json: vi.fn(),
-    });
-
-    await fetchSmartPageContextConfig({
-      websiteToken: 'production-token',
-      baseUrl: 'https://chat.voxedesk.com',
-      voxeBaseUrl: 'https://voxedesk.com',
-      fetch: fetchFn,
-      root: createRoot({ fetch: fetchFn }),
-    });
-
-    expect(fetchFn).toHaveBeenCalledWith(
-      'https://voxedesk.com/api/widget/runtime-config?website_token=production-token&base_url=https%3A%2F%2Fchat.voxedesk.com',
-      expect.any(Object)
-    );
   });
 });
