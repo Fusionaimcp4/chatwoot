@@ -8,6 +8,7 @@ import EmailInput from './template/EmailInput.vue';
 import CustomerSatisfaction from 'shared/components/CustomerSatisfaction.vue';
 import IntegrationCard from './template/IntegrationCard.vue';
 import configMixin from '../mixins/configMixin';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'AgentMessageBubble',
@@ -42,6 +43,9 @@ export default {
     };
   },
   computed: {
+    ...mapGetters({
+      storedWidgetLayout: 'appConfig/getWidgetLayout',
+    }),
     isTemplate() {
       return this.messageType === 3;
     },
@@ -67,7 +71,11 @@ export default {
       return this.contentType === 'integrations';
     },
     isExpandedWidgetLayout() {
-      return this.channelConfig?.widgetSettings?.layout === 'expanded';
+      const layout =
+        this.storedWidgetLayout ||
+        this.channelConfig?.widgetSettings?.layout ||
+        'compact';
+      return layout === 'expanded';
     },
     cardsGridClass() {
       return this.isExpandedWidgetLayout ? 'grid-cols-3' : 'grid-cols-2';

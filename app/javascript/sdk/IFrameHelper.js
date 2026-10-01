@@ -33,7 +33,13 @@ import {
   getAlertAudio,
   initOnEvents,
 } from 'shared/helpers/AudioNotificationHelper';
-import { getWidgetLayout, isFlatWidgetStyle } from './settingsHelper';
+import { isFlatWidgetStyle } from './settingsHelper';
+import {
+  isValidWidgetLayout,
+  resolveWidgetLayoutPreference,
+  saveWidgetLayoutPreference,
+  widgetLayoutClassName,
+} from './layoutPreference';
 import { popoutChatWindow } from '../widget/helpers/popoutHelper';
 import addHours from 'date-fns/addHours';
 import { cart } from './cart';
@@ -163,6 +169,10 @@ export const IFrameHelper = {
         root: window,
       });
       const campaignsSnoozedTill = Cookies.get('cw_snooze_campaigns_till');
+      const effectiveLayout = resolveWidgetLayoutPreference({
+        websiteToken: window.$chatwoot.websiteToken,
+        serverLayout: message.config.channelConfig.widgetSettings?.layout,
+      });
       IFrameHelper.sendMessage('config-set', {
         locale: window.$chatwoot.locale,
         position: window.$chatwoot.position,
@@ -179,10 +189,11 @@ export const IFrameHelper = {
         enableFileUpload: window.$chatwoot.enableFileUpload,
         enableEmojiPicker: window.$chatwoot.enableEmojiPicker,
         enableEndConversation: window.$chatwoot.enableEndConversation,
+        widgetLayout: effectiveLayout,
       });
       IFrameHelper.onLoad({
         widgetColor: message.config.channelConfig.widgetColor,
-        widgetLayout: message.config.channelConfig.widgetSettings?.layout,
+        widgetLayout: effectiveLayout,
       });
       IFrameHelper.toggleCloseButton();
       cart
@@ -325,9 +336,24 @@ export const IFrameHelper = {
     playAudio: () => {
       window.playAudioAlert();
     },
+
+    'set-widget-layout': ({ layout }) => {
+      if (!isValidWidgetLayout(layout)) return;
+
+      saveWidgetLayoutPreference(window.$chatwoot.websiteToken, layout);
+      IFrameHelper.applyWidgetLayout(layout);
+    },
   },
   pushEvent: eventName => {
     IFrameHelper.sendMessage('push-event', { eventName });
+  },
+
+  applyWidgetLayout: layout => {
+    removeClasses(
+      widgetHolder,
+      'woot-widget-layout--compact woot-widget-layout--expanded'
+    );
+    addClasses(widgetHolder, widgetLayoutClassName(layout));
   },
 
   onLoad: ({ widgetColor, widgetLayout }) => {
@@ -335,14 +361,7 @@ export const IFrameHelper = {
     iframe.style.visibility = '';
     iframe.setAttribute('id', `chatwoot_live_chat_widget`);
 
-    removeClasses(
-      widgetHolder,
-      'woot-widget-layout--compact woot-widget-layout--expanded'
-    );
-    addClasses(
-      widgetHolder,
-      `woot-widget-layout--${getWidgetLayout(widgetLayout)}`
-    );
+    IFrameHelper.applyWidgetLayout(widgetLayout);
 
     if (IFrameHelper.getBubbleHolder().length) {
       return;

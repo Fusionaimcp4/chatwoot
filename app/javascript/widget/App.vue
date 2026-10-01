@@ -123,6 +123,7 @@ export default {
       'setWidgetColor',
       'setBubbleVisibility',
       'setColorScheme',
+      'setIsMobile',
     ]),
     ...mapActions('conversation', ['fetchOldConversations']),
     ...mapActions('campaign', [
@@ -291,6 +292,7 @@ export default {
           this.setReferrerHost(referrerHost);
         } else if (message.event === 'toggle-close-button') {
           this.isMobile = message.isMobile;
+          this.setIsMobile(message.isMobile);
         } else if (message.event === 'push-event') {
           this.createWidgetEvents(message);
         } else if (message.event === 'set-label') {

@@ -1,5 +1,5 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import { IFrameHelper, RNHelper } from 'widget/helpers/utils';
 import { popoutChatWindow } from '../helpers/popoutHelper';
 import FluentIcon from 'shared/components/FluentIcon/Index.vue';
@@ -25,6 +25,8 @@ export default {
       conversationAttributes: 'conversationAttributes/getConversationParams',
       canUserEndConversation: 'appConfig/getCanUserEndConversation',
       cartItemsCount: 'appConfig/getCartItemsCount',
+      storedWidgetLayout: 'appConfig/getWidgetLayout',
+      isMobileViewport: 'appConfig/getIsMobile',
     }),
     canLeaveConversation() {
       return [
@@ -54,8 +56,29 @@ export default {
     cartBadgeLabel() {
       return this.cartItemsCount > 99 ? '99+' : String(this.cartItemsCount);
     },
+    effectiveWidgetLayout() {
+      return (
+        this.storedWidgetLayout ||
+        this.channelConfig?.widgetSettings?.layout ||
+        'compact'
+      );
+    },
+    isExpandedLayout() {
+      return this.effectiveWidgetLayout === 'expanded';
+    },
+    showLayoutToggle() {
+      // Use parent-reported mobile flag. Iframe matchMedia is wrong because the
+      // compact holder is ~400px wide even on desktop parent pages.
+      return this.isIframe && !this.isMobileViewport;
+    },
+    layoutToggleLabel() {
+      return this.isExpandedLayout
+        ? this.$t('HEADER.COMPACT_CHAT')
+        : this.$t('HEADER.EXPAND_CHAT');
+    },
   },
   methods: {
+    ...mapActions('appConfig', ['setWidgetLayout']),
     popoutWindow() {
       this.closeWindow();
       const {
@@ -85,6 +108,16 @@ export default {
         IFrameHelper.sendMessage({ event: 'open-cart' });
       }
     },
+    toggleWidgetLayout() {
+      const nextLayout = this.isExpandedLayout ? 'compact' : 'expanded';
+      this.setWidgetLayout(nextLayout);
+      if (IFrameHelper.isIFrame()) {
+        IFrameHelper.sendMessage({
+          event: 'set-widget-layout',
+          layout: nextLayout,
+        });
+      }
+    },
   },
 };
 </script>
@@ -104,6 +137,48 @@ export default {
       @click="resolveConversation"
     >
       <FluentIcon icon="sign-out" size="22" class="text-n-slate-12" />
+    </button>
+    <button
+      v-if="showLayoutToggle"
+      type="button"
+      class="button transparent compact layout-toggle-button"
+      :title="layoutToggleLabel"
+      :aria-label="layoutToggleLabel"
+      @click="toggleWidgetLayout"
+    >
+      <!-- Stroke icons match cart weight/color; Fluent fill icons looked heavier -->
+      <svg
+        v-if="!isExpandedLayout"
+        class="h-[22px] w-[22px] text-n-slate-12"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <svg
+        v-else
+        class="h-[22px] w-[22px] text-n-slate-12"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M9 4v4H5M15 4v4h4M9 20v-4H5M15 20v-4h4"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
     </button>
     <button
       v-if="showPopoutButton"

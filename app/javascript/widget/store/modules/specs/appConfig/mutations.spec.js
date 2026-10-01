@@ -40,4 +40,26 @@ describe('#mutations', () => {
       expect(state.isUpdatingRoute).toEqual(true);
     });
   });
+
+  describe('#SET_WIDGET_LAYOUT', () => {
+    it('sets a valid widget layout', () => {
+      const state = { widgetLayout: null };
+      mutations.SET_WIDGET_LAYOUT(state, 'expanded');
+      expect(state.widgetLayout).toEqual('expanded');
+    });
+
+    it('ignores invalid widget layouts', () => {
+      const state = { widgetLayout: 'compact' };
+      mutations.SET_WIDGET_LAYOUT(state, 'fullscreen');
+      expect(state.widgetLayout).toEqual('compact');
+    });
+  });
+
+  describe('#SET_IS_MOBILE', () => {
+    it('sets the parent-reported mobile flag', () => {
+      const state = { isMobile: false };
+      mutations.SET_IS_MOBILE(state, true);
+      expect(state.isMobile).toEqual(true);
+    });
+  });
 });

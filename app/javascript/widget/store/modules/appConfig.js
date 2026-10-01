@@ -7,6 +7,8 @@ import {
   TOGGLE_WIDGET_OPEN,
   SET_ROUTE_UPDATE_STATE,
   SET_CART_ITEMS_COUNT,
+  SET_WIDGET_LAYOUT,
+  SET_IS_MOBILE,
 } from '../types';
 
 const state = {
@@ -30,6 +32,8 @@ const state = {
   enableEmojiPicker: true,
   enableEndConversation: true,
   cartItemsCount: 0,
+  widgetLayout: null,
+  isMobile: false,
 };
 
 export const getters = {
@@ -51,6 +55,8 @@ export const getters = {
   getShouldShowEmojiPicker: $state => $state.enableEmojiPicker,
   getCanUserEndConversation: $state => $state.enableEndConversation,
   getCartItemsCount: $state => $state.cartItemsCount || 0,
+  getWidgetLayout: $state => $state.widgetLayout,
+  getIsMobile: $state => !!$state.isMobile,
 };
 
 export const actions = {
@@ -70,6 +76,7 @@ export const actions = {
       enableFileUpload = true,
       enableEmojiPicker = true,
       enableEndConversation = true,
+      widgetLayout = null,
     }
   ) {
     commit(SET_WIDGET_APP_CONFIG, {
@@ -86,6 +93,7 @@ export const actions = {
       enableFileUpload,
       enableEmojiPicker,
       enableEndConversation,
+      widgetLayout,
     });
   },
   toggleWidgetOpen({ commit }, isWidgetOpen) {
@@ -113,6 +121,12 @@ export const actions = {
   setCartItemsCount({ commit }, itemsCount) {
     commit(SET_CART_ITEMS_COUNT, Number(itemsCount) || 0);
   },
+  setWidgetLayout({ commit }, layout) {
+    commit(SET_WIDGET_LAYOUT, layout);
+  },
+  setIsMobile({ commit }, isMobile) {
+    commit(SET_IS_MOBILE, !!isMobile);
+  },
 };
 
 export const mutations = {
@@ -131,6 +145,9 @@ export const mutations = {
     $state.enableFileUpload = data.enableFileUpload;
     $state.enableEmojiPicker = data.enableEmojiPicker;
     $state.enableEndConversation = data.enableEndConversation;
+    if (data.widgetLayout === 'compact' || data.widgetLayout === 'expanded') {
+      $state.widgetLayout = data.widgetLayout;
+    }
   },
   [TOGGLE_WIDGET_OPEN]($state, isWidgetOpen) {
     $state.isWidgetOpen = isWidgetOpen;
@@ -152,6 +169,14 @@ export const mutations = {
   },
   [SET_CART_ITEMS_COUNT]($state, itemsCount) {
     $state.cartItemsCount = itemsCount;
+  },
+  [SET_WIDGET_LAYOUT]($state, layout) {
+    if (layout === 'compact' || layout === 'expanded') {
+      $state.widgetLayout = layout;
+    }
+  },
+  [SET_IS_MOBILE]($state, isMobile) {
+    $state.isMobile = !!isMobile;
   },
 };
 

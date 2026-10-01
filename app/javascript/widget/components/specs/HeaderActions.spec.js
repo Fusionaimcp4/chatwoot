@@ -17,6 +17,8 @@ vi.mock('widget/helpers/utils', () => ({
 
 describe('HeaderActions', () => {
   let store;
+  let setWidgetLayout;
+  let isMobile = false;
 
   const mountComponent = props =>
     shallowMount(HeaderActions, {
@@ -32,22 +34,21 @@ describe('HeaderActions', () => {
       props: props || {},
     });
 
-  beforeEach(() => {
-    window.chatwootWebChannel = {
-      enabledFeatures: [],
-    };
-    IFrameHelper.isIFrame.mockReturnValue(true);
-    IFrameHelper.sendMessage.mockClear();
-    RNHelper.isRNWebView.mockReturnValue(false);
-    RNHelper.sendMessage.mockClear();
-
-    store = createStore({
+  const buildStore = ({ widgetLayout = 'compact', mobile = false } = {}) => {
+    isMobile = mobile;
+    setWidgetLayout = vi.fn();
+    return createStore({
       modules: {
         appConfig: {
           namespaced: true,
           getters: {
             getCanUserEndConversation: () => true,
             getCartItemsCount: () => 0,
+            getWidgetLayout: () => widgetLayout,
+            getIsMobile: () => isMobile,
+          },
+          actions: {
+            setWidgetLayout: (_, layout) => setWidgetLayout(layout),
           },
         },
         conversationAttributes: {
@@ -59,6 +60,18 @@ describe('HeaderActions', () => {
         },
       },
     });
+  };
+
+  beforeEach(() => {
+    window.chatwootWebChannel = {
+      enabledFeatures: [],
+      widgetSettings: { layout: 'compact' },
+    };
+    IFrameHelper.isIFrame.mockReturnValue(true);
+    IFrameHelper.sendMessage.mockClear();
+    RNHelper.isRNWebView.mockReturnValue(false);
+    RNHelper.sendMessage.mockClear();
+    store = buildStore();
   });
 
   it('uses the header close action for an embedded widget', async () => {
@@ -82,5 +95,46 @@ describe('HeaderActions', () => {
 
     expect(wrapper.find('.close-button').exists()).toBe(false);
     expect(wrapper.find('.new-window--button').exists()).toBe(true);
+  });
+
+  it('shows the layout toggle on desktop embeds only', () => {
+    store = buildStore({ mobile: false });
+    const desktop = mountComponent();
+    expect(desktop.find('.layout-toggle-button').exists()).toBe(true);
+
+    store = buildStore({ mobile: true });
+    const mobile = mountComponent();
+    expect(mobile.find('.layout-toggle-button').exists()).toBe(false);
+  });
+
+  it('toggles compact to expanded immediately and notifies the parent', async () => {
+    const wrapper = mountComponent();
+    const toggle = wrapper.get('.layout-toggle-button');
+
+    expect(toggle.attributes('aria-label')).toBe('HEADER.EXPAND_CHAT');
+
+    await toggle.trigger('click');
+
+    expect(setWidgetLayout).toHaveBeenCalledWith('expanded');
+    expect(IFrameHelper.sendMessage).toHaveBeenCalledWith({
+      event: 'set-widget-layout',
+      layout: 'expanded',
+    });
+  });
+
+  it('toggles expanded to compact', async () => {
+    store = buildStore({ widgetLayout: 'expanded' });
+    const wrapper = mountComponent();
+    const toggle = wrapper.get('.layout-toggle-button');
+
+    expect(toggle.attributes('aria-label')).toBe('HEADER.COMPACT_CHAT');
+
+    await toggle.trigger('click');
+
+    expect(setWidgetLayout).toHaveBeenCalledWith('compact');
+    expect(IFrameHelper.sendMessage).toHaveBeenCalledWith({
+      event: 'set-widget-layout',
+      layout: 'compact',
+    });
   });
 });
