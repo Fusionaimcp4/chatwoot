@@ -1,6 +1,7 @@
 <script setup>
 import { toRef } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore, useMapGetter } from 'dashboard/composables/store';
 import FluentIcon from 'shared/components/FluentIcon/Index.vue';
 import HeaderActions from './HeaderActions.vue';
 import AvailabilityContainer from 'widget/components/Availability/AvailabilityContainer.vue';
@@ -17,9 +18,17 @@ const props = defineProps({
 const availableAgents = toRef(props, 'availableAgents');
 
 const router = useRouter();
+const store = useStore();
+const isCustomerQuestionAnswerOpen = useMapGetter(
+  'appConfig/getIsCustomerQuestionAnswerOpen'
+);
 const { isOnline } = useAvailability(availableAgents);
 
 const onBackButtonClick = () => {
+  if (isCustomerQuestionAnswerOpen.value) {
+    store.dispatch('appConfig/setCustomerQuestionAnswerOpen', false);
+    return;
+  }
   router.replace({ name: 'home' });
 };
 </script>
@@ -32,6 +41,7 @@ const onBackButtonClick = () => {
       <button
         v-if="showBackButton"
         class="px-2 ltr:-ml-3 rtl:-mr-3"
+        :aria-label="$t('HEADER.BACK')"
         @click="onBackButtonClick"
       >
         <FluentIcon icon="chevron-left" size="24" class="text-n-slate-12" />

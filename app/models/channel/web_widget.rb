@@ -47,12 +47,25 @@ class Channel::WebWidget < ApplicationRecord
     'enabled' => false,
     'fields' => SMART_PAGE_CONTEXT_FIELDS.index_with { true }
   }.freeze
+  CUSTOMER_QUESTION_TYPES = %w[static ai].freeze
+  CUSTOMER_QUESTIONS_MAX_ITEMS = 5
+  DEFAULT_CUSTOMER_QUESTIONS = {
+    'enabled' => false,
+    'items' => []
+  }.freeze
 
   EDITABLE_ATTRS = [:website_url, :widget_color, :welcome_title, :welcome_tagline, :reply_time, :pre_chat_form_enabled,
                     :continuity_via_email, :hmac_mandatory, :allowed_domains, :hide_branding,
                     { widget_settings: [
                       :layout,
-                      { smart_page_context: [:enabled, { fields: SMART_PAGE_CONTEXT_FIELDS }] }
+                      { smart_page_context: [:enabled, { fields: SMART_PAGE_CONTEXT_FIELDS }] },
+                      { customer_questions: [
+                        :enabled,
+                        { items: [
+                          :id, :question, :type, :answer, :enabled,
+                          { targets: [:all_pages, { pages: [] }] }
+                        ] }
+                      ] }
                     ] },
                     { pre_chat_form_options: [:pre_chat_message, :require_email,
                                               { pre_chat_fields:
@@ -87,6 +100,7 @@ class Channel::WebWidget < ApplicationRecord
     settings = widget_settings.respond_to?(:to_h) ? widget_settings.to_h.deep_stringify_keys : {}
     settings['layout'] = widget_layout
     settings['smart_page_context'] = normalized_smart_page_context(settings['smart_page_context'])
+    settings['customer_questions'] = normalized_customer_questions(settings['customer_questions'])
     settings
   end
 
@@ -144,6 +158,7 @@ class Channel::WebWidget < ApplicationRecord
     settings = previous.deep_merge(incoming)
     settings['layout'] = WIDGET_LAYOUTS.include?(settings['layout']) ? settings['layout'] : DEFAULT_WIDGET_LAYOUT
     settings['smart_page_context'] = normalized_smart_page_context(settings['smart_page_context'])
+    settings['customer_questions'] = normalized_customer_questions(settings['customer_questions'])
 
     self.widget_settings = settings
   end
@@ -157,6 +172,50 @@ class Channel::WebWidget < ApplicationRecord
       'fields' => SMART_PAGE_CONTEXT_FIELDS.index_with do |field|
         input_fields.key?(field) ? input_fields[field] == true : true
       end
+    }
+  end
+
+  def normalized_customer_questions(raw)
+    input = raw.respond_to?(:to_h) ? raw.to_h.deep_stringify_keys : {}
+    items = Array(input['items']).filter_map { |item| normalized_customer_question_item(item) }
+
+    {
+      'enabled' => input['enabled'] == true,
+      'items' => items
+    }
+  end
+
+  def normalized_customer_question_item(raw)
+    return unless raw.respond_to?(:to_h)
+
+    item = raw.to_h.deep_stringify_keys
+    id = item['id'].to_s.strip
+    question = item['question'].to_s.strip
+    type = item['type'].to_s.strip
+    return if id.blank? || question.blank?
+    return unless CUSTOMER_QUESTION_TYPES.include?(type)
+
+    answer = item['answer'].to_s.strip
+    return if type == 'static' && answer.blank?
+
+    normalized = {
+      'id' => id,
+      'question' => question,
+      'type' => type,
+      'enabled' => item.key?('enabled') ? item['enabled'] == true : true,
+      'targets' => normalized_customer_question_targets(item['targets'])
+    }
+    normalized['answer'] = answer if type == 'static'
+    normalized
+  end
+
+  def normalized_customer_question_targets(raw)
+    input = raw.respond_to?(:to_h) ? raw.to_h.deep_stringify_keys : {}
+    pages = Array(input['pages']).map { |page| page.to_s.strip }.reject(&:blank?).uniq
+
+    {
+      'all_pages' => input['all_pages'] == true,
+      'pages' => pages
     }
   end
 

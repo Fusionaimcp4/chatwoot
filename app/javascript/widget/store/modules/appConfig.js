@@ -9,6 +9,7 @@ import {
   SET_CART_ITEMS_COUNT,
   SET_WIDGET_LAYOUT,
   SET_IS_MOBILE,
+  SET_CUSTOMER_QUESTION_ANSWER_OPEN,
 } from '../types';
 
 const state = {
@@ -34,6 +35,7 @@ const state = {
   cartItemsCount: 0,
   widgetLayout: null,
   isMobile: false,
+  isCustomerQuestionAnswerOpen: false,
 };
 
 export const getters = {
@@ -57,6 +59,8 @@ export const getters = {
   getCartItemsCount: $state => $state.cartItemsCount || 0,
   getWidgetLayout: $state => $state.widgetLayout,
   getIsMobile: $state => !!$state.isMobile,
+  getIsCustomerQuestionAnswerOpen: $state =>
+    !!$state.isCustomerQuestionAnswerOpen,
 };
 
 export const actions = {
@@ -127,6 +131,9 @@ export const actions = {
   setIsMobile({ commit }, isMobile) {
     commit(SET_IS_MOBILE, !!isMobile);
   },
+  setCustomerQuestionAnswerOpen({ commit }, isOpen) {
+    commit(SET_CUSTOMER_QUESTION_ANSWER_OPEN, !!isOpen);
+  },
 };
 
 export const mutations = {
@@ -177,6 +184,9 @@ export const mutations = {
   },
   [SET_IS_MOBILE]($state, isMobile) {
     $state.isMobile = !!isMobile;
+  },
+  [SET_CUSTOMER_QUESTION_ANSWER_OPEN]($state, isOpen) {
+    $state.isCustomerQuestionAnswerOpen = !!isOpen;
   },
 };
 

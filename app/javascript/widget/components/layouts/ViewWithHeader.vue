@@ -28,11 +28,16 @@ export default {
     ...mapGetters({
       appConfig: 'appConfig/getAppConfig',
       availableAgents: 'agent/availableAgents',
+      isCustomerQuestionAnswerOpen: 'appConfig/getIsCustomerQuestionAnswerOpen',
     }),
     portal() {
       return window.chatwootWebChannel.portal;
     },
     isHeaderCollapsed() {
+      // Match article/messages detail chrome when a static CQ answer is open.
+      if (this.isCustomerQuestionAnswerOpen) {
+        return true;
+      }
       if (!this.hasIntroText) {
         return true;
       }
@@ -44,8 +49,10 @@ export default {
       );
     },
     showBackButton() {
-      return ['article-viewer', 'messages', 'prechat-form'].includes(
-        this.$route.name
+      return (
+        ['article-viewer', 'messages', 'prechat-form'].includes(
+          this.$route.name
+        ) || this.isCustomerQuestionAnswerOpen
       );
     },
     isOnArticleViewer() {

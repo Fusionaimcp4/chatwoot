@@ -4,16 +4,15 @@ class Internal::Api::V1::WidgetConfigsController < Api::BaseController
   before_action :check_admin_authorization
 
   def show
-    render json: {
-      hideBranding: @web_widget.hide_branding || false,
-      smartPageContext: @web_widget.widget_settings_with_defaults['smart_page_context']
-    }
+    render json: widget_config_response
   end
 
   def update
     params_to_update = update_params
-    if params_to_update[:hideBranding].nil? && smart_page_context_param.nil?
-      render json: { error: 'hideBranding or smartPageContext parameter is required' }, status: :bad_request
+    if params_to_update[:hideBranding].nil? && smart_page_context_param.nil? && customer_questions_param.nil?
+      render json: {
+        error: 'hideBranding, smartPageContext, or customerQuestions parameter is required'
+      }, status: :bad_request
       return
     end
 
@@ -22,18 +21,13 @@ class Internal::Api::V1::WidgetConfigsController < Api::BaseController
       updates[:hide_branding] = ActiveModel::Type::Boolean.new.cast(params_to_update[:hideBranding])
     end
 
-    if smart_page_context_param
-      updates[:widget_settings] = @web_widget.widget_settings_with_defaults.merge(
-        'smart_page_context' => normalize_smart_page_context(smart_page_context_param)
-      )
+    if smart_page_context_param || customer_questions_param
+      updates[:widget_settings] = build_widget_settings_update
     end
 
     @web_widget.update!(updates)
 
-    render json: {
-      hideBranding: @web_widget.hide_branding || false,
-      smartPageContext: @web_widget.widget_settings_with_defaults['smart_page_context']
-    }
+    render json: widget_config_response
   end
 
   private
@@ -68,16 +62,61 @@ class Internal::Api::V1::WidgetConfigsController < Api::BaseController
     end
   end
 
+  def widget_config_response
+    settings = @web_widget.widget_settings_with_defaults
+    {
+      hideBranding: @web_widget.hide_branding || false,
+      smartPageContext: settings['smart_page_context'],
+      customerQuestions: settings['customer_questions']
+    }
+  end
+
+  def build_widget_settings_update
+    settings = @web_widget.widget_settings_with_defaults
+
+    if smart_page_context_param
+      settings = settings.merge(
+        'smart_page_context' => normalize_smart_page_context(smart_page_context_param)
+      )
+    end
+
+    if customer_questions_param
+      # Replace the full customer_questions object. Model normalize_widget_settings
+      # validates shape; Hash#merge replaces items (no per-item deep-merge append).
+      settings = settings.merge(
+        'customer_questions' => customer_questions_param.to_h
+      )
+    end
+
+    settings
+  end
+
   def update_params
     params.permit(
       :hideBranding,
       smartPageContext: [:enabled, { fields: Channel::WebWidget::SMART_PAGE_CONTEXT_FIELDS }],
-      smart_page_context: [:enabled, { fields: Channel::WebWidget::SMART_PAGE_CONTEXT_FIELDS }]
+      smart_page_context: [:enabled, { fields: Channel::WebWidget::SMART_PAGE_CONTEXT_FIELDS }],
+      customerQuestions: customer_questions_permitted_keys,
+      customer_questions: customer_questions_permitted_keys
     )
+  end
+
+  def customer_questions_permitted_keys
+    [
+      :enabled,
+      { items: [
+        :id, :question, :type, :answer, :enabled,
+        { targets: [:all_pages, { pages: [] }] }
+      ] }
+    ]
   end
 
   def smart_page_context_param
     update_params[:smartPageContext] || update_params[:smart_page_context]
+  end
+
+  def customer_questions_param
+    update_params[:customerQuestions] || update_params[:customer_questions]
   end
 
   def normalize_smart_page_context(raw)
@@ -95,4 +134,3 @@ class Internal::Api::V1::WidgetConfigsController < Api::BaseController
     }
   end
 end
-

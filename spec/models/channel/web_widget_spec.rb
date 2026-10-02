@@ -25,6 +25,107 @@ RSpec.describe Channel::WebWidget do
         'referrer' => true,
         'page_type' => true
       )
+      expect(settings['customer_questions']).to eq(
+        'enabled' => false,
+        'items' => []
+      )
+    end
+
+    it 'normalizes customer_questions for Voxe-managed widget_settings' do
+      channel_widget.update!(
+        widget_settings: {
+          customer_questions: {
+            enabled: true,
+            items: [
+              {
+                id: 'shipping-time',
+                question: 'How long does shipping take?',
+                type: 'static',
+                answer: 'Standard shipping normally takes 3–5 business days.',
+                enabled: true,
+                targets: { all_pages: true, pages: ['Home', '/about-us', ''] }
+              },
+              {
+                id: '  ',
+                question: 'Missing id',
+                type: 'static',
+                answer: 'Nope',
+                enabled: true,
+                targets: { all_pages: true, pages: [] }
+              },
+              {
+                id: 'product-help',
+                question: 'Can you help me find the right product?',
+                type: 'ai',
+                enabled: true,
+                targets: { all_pages: false, pages: ['Product'] }
+              },
+              {
+                id: 'broken-static',
+                question: 'No answer',
+                type: 'static',
+                enabled: true,
+                targets: { all_pages: true, pages: [] }
+              },
+              {
+                id: 'unknown-type',
+                question: 'Unknown',
+                type: 'workflow',
+                enabled: true,
+                targets: { all_pages: true, pages: [] }
+              }
+            ]
+          }
+        }
+      )
+
+      settings = channel_widget.reload.widget_settings['customer_questions']
+      expect(settings['enabled']).to be true
+      expect(settings['items']).to eq(
+        [
+          {
+            'id' => 'shipping-time',
+            'question' => 'How long does shipping take?',
+            'type' => 'static',
+            'answer' => 'Standard shipping normally takes 3–5 business days.',
+            'enabled' => true,
+            'targets' => { 'all_pages' => true, 'pages' => ['Home', '/about-us'] }
+          },
+          {
+            'id' => 'product-help',
+            'question' => 'Can you help me find the right product?',
+            'type' => 'ai',
+            'enabled' => true,
+            'targets' => { 'all_pages' => false, 'pages' => ['Product'] }
+          }
+        ]
+      )
+    end
+
+    it 'preserves customer_questions when unrelated widget_settings change' do
+      channel_widget.update!(
+        widget_settings: {
+          customer_questions: {
+            enabled: true,
+            items: [
+              {
+                id: 'shipping-time',
+                question: 'How long does shipping take?',
+                type: 'static',
+                answer: '3–5 days',
+                enabled: true,
+                targets: { all_pages: true, pages: [] }
+              }
+            ]
+          }
+        }
+      )
+
+      channel_widget.update!(widget_settings: { layout: 'expanded' })
+
+      expect(channel_widget.reload.widget_settings['layout']).to eq('expanded')
+      expect(channel_widget.reload.widget_settings['customer_questions']['enabled']).to be true
+      expect(channel_widget.reload.widget_settings['customer_questions']['items'].length).to eq(1)
     end
 
     it 'persists supported widget layouts' do

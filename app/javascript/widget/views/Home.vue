@@ -1,13 +1,16 @@
 <script>
+import CustomerQuestions from 'widget/components/CustomerQuestions.vue';
 import TeamAvailability from 'widget/components/TeamAvailability.vue';
 import { mapGetters } from 'vuex';
 import { useRouter } from 'vue-router';
 import configMixin from 'widget/mixins/configMixin';
 import ArticleContainer from '../components/pageComponents/Home/Article/ArticleContainer.vue';
+
 export default {
   name: 'Home',
   components: {
     ArticleContainer,
+    CustomerQuestions,
     TeamAvailability,
   },
   mixins: [configMixin],
@@ -35,6 +38,8 @@ export default {
 
 <template>
   <div class="z-50 flex flex-col justify-end flex-1 w-full p-4 gap-4">
+    <CustomerQuestions />
+
     <TeamAvailability
       :available-agents="availableAgents"
       :has-conversation="!!conversationSize"

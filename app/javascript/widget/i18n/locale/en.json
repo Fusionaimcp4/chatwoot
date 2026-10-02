@@ -163,6 +163,7 @@
     "ADD_TO_CART": "Add to cart"
   },
   "HEADER": {
+    "BACK": "Back",
     "CART": "Cart",
     "EXPAND_CHAT": "Expand chat",
     "COMPACT_CHAT": "Compact chat"
