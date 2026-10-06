@@ -100,6 +100,10 @@ export default {
     },
     replyTimeText() {
       switch (this.replyTime) {
+        case 'in_a_few_seconds':
+          return this.$t(
+            'INBOX_MGMT.WIDGET_BUILDER.REPLY_TIME.IN_A_FEW_SECONDS'
+          );
         case 'in_a_few_minutes':
           return this.$t(
             'INBOX_MGMT.WIDGET_BUILDER.REPLY_TIME.IN_A_FEW_MINUTES'

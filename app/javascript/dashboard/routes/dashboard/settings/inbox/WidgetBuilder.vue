@@ -36,7 +36,7 @@ export default {
       websiteName: '',
       welcomeHeading: '',
       welcomeTagline: '',
-      replyTime: 'in_a_few_minutes',
+      replyTime: 'in_a_few_seconds',
       avatarFile: null,
       avatarUrl: '',
       widgetBubblePosition: 'right',
@@ -138,6 +138,13 @@ export default {
     },
     getReplyTimeOptions() {
       return [
+        {
+          key: 'in_a_few_seconds',
+          value: 'in_a_few_seconds',
+          text: this.$t(
+            'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.REPLY_TIME.IN_A_FEW_SECONDS'
+          ),
+        },
         {
           key: 'in_a_few_minutes',
           value: 'in_a_few_minutes',

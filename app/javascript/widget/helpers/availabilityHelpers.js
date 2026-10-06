@@ -321,7 +321,8 @@ export const findNextAvailableSlotDiff = (
  * @param {Date|string} time
  * @param {string} utcOffset
  * @param {Array} workingHours
- * @param {boolean} hasOnlineAgents
+ * @param {boolean} hasOnlineHumanAgents
+ * @param {boolean} hasAiAvailable
  * @returns {boolean}
  */
 export const isOnline = (
@@ -329,12 +330,17 @@ export const isOnline = (
   time,
   utcOffset,
   workingHours,
-  hasOnlineAgents
+  hasOnlineHumanAgents,
+  hasAiAvailable = false
 ) => {
+  if (hasAiAvailable) {
+    return true;
+  }
+
   if (!workingHoursEnabled) {
-    return hasOnlineAgents;
+    return hasOnlineHumanAgents;
   }
 
   const inWorkingHours = isInWorkingHours(time, utcOffset, workingHours);
-  return inWorkingHours && hasOnlineAgents;
+  return inWorkingHours && hasOnlineHumanAgents;
 };

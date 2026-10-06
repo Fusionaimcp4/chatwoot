@@ -3,10 +3,14 @@ import {
   isOnline as checkIsOnline,
   isInWorkingHours as checkInWorkingHours,
 } from 'widget/helpers/availabilityHelpers';
+import {
+  getConnectedAgentBotFromChannel,
+  isAgentBotRecord,
+} from 'widget/helpers/connectedAgentBot';
 import { useCamelCase } from 'dashboard/composables/useTransformKeys';
 
 const DEFAULT_TIMEZONE = 'UTC';
-const DEFAULT_REPLY_TIME = 'in_a_few_minutes';
+const DEFAULT_REPLY_TIME = 'in_a_few_seconds';
 
 /**
  * Composable for availability-related logic
@@ -31,10 +35,26 @@ export function useAvailability(agents = []) {
 
   const currentTime = computed(() => new Date());
 
-  const hasOnlineAgents = computed(() => {
-    const agentList = availableAgents.value || [];
-    return Array.isArray(agentList) ? agentList.length > 0 : false;
+  const connectedAgentBot = computed(() => {
+    const fromList = (availableAgents.value || []).find(isAgentBotRecord);
+    return fromList || getConnectedAgentBotFromChannel(channelConfig.value);
   });
+
+  const hasAiAvailable = computed(() => !!connectedAgentBot.value);
+
+  const hasOnlineHumanAgents = computed(() => {
+    const agentList = availableAgents.value || [];
+    return Array.isArray(agentList)
+      ? agentList.some(
+          agent =>
+            !isAgentBotRecord(agent) && agent.availability_status === 'online'
+        )
+      : false;
+  });
+
+  const hasOnlineAgents = computed(
+    () => hasAiAvailable.value || hasOnlineHumanAgents.value
+  );
 
   const isInWorkingHours = computed(() =>
     checkInWorkingHours(
@@ -44,14 +64,14 @@ export function useAvailability(agents = []) {
     )
   );
 
-  // Check if online (considering both working hours and agents)
   const isOnline = computed(() =>
     checkIsOnline(
       inboxConfig.value.workingHoursEnabled,
       currentTime.value,
       inboxConfig.value.utcOffset,
       inboxConfig.value.workingHours,
-      hasOnlineAgents.value
+      hasOnlineHumanAgents.value,
+      hasAiAvailable.value
     )
   );
 
@@ -61,6 +81,9 @@ export function useAvailability(agents = []) {
 
     currentTime,
     availableAgents,
+    connectedAgentBot,
+    hasAiAvailable,
+    hasOnlineHumanAgents,
     hasOnlineAgents,
 
     isOnline,

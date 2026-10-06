@@ -1,6 +1,10 @@
 import { getAvailableAgents } from 'widget/api/agent';
-import * as MutationHelpers from 'shared/helpers/vuex/mutationHelpers';
 import { getFromCache, setCache } from 'shared/helpers/cache';
+import {
+  getConnectedAgentBotFromChannel,
+  isAgentBotRecord,
+  mergeAvailableAgents,
+} from 'widget/helpers/connectedAgentBot';
 
 const state = {
   records: [],
@@ -12,8 +16,13 @@ const state = {
 
 export const getters = {
   getHasFetched: $state => $state.uiFlags.hasFetched,
-  availableAgents: $state =>
-    $state.records.filter(agent => agent.availability_status === 'online'),
+  availableAgents: $state => {
+    const onlineHumans = $state.records.filter(
+      agent => agent.availability_status === 'online'
+    );
+    const connectedBot = getConnectedAgentBotFromChannel();
+    return mergeAvailableAgents(onlineHumans, connectedBot);
+  },
 };
 
 const CACHE_KEY_PREFIX = 'chatwoot_available_agents_';
@@ -49,7 +58,16 @@ export const mutations = {
   setAgents($state, data) {
     $state.records = data;
   },
-  updatePresence: MutationHelpers.updatePresence,
+  updatePresence($state, data) {
+    $state.records.forEach((element, index) => {
+      if (isAgentBotRecord(element)) {
+        return;
+      }
+      const availabilityStatus = data[element.id];
+      $state.records[index].availability_status =
+        availabilityStatus || 'offline';
+    });
+  },
   setError($state, value) {
     $state.uiFlags.isError = value;
   },

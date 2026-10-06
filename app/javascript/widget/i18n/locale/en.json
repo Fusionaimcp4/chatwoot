@@ -20,9 +20,12 @@
   "TEAM_AVAILABILITY": {
     "ONLINE": "We are online",
     "OFFLINE": "We are away at the moment",
+    "AI_ONLY": "{name} is available to help you now.",
+    "AI_AND_TEAM": "{name} is available, and our support team is also available.",
     "BACK_AS_SOON_AS_POSSIBLE": "We will be back as soon as possible"
   },
   "REPLY_TIME": {
+    "IN_A_FEW_SECONDS": "Typically replies in a few seconds",
     "IN_A_FEW_MINUTES": "Typically replies in a few minutes",
     "IN_A_FEW_HOURS": "Typically replies in a few hours",
     "IN_A_DAY": "Typically replies in a day",

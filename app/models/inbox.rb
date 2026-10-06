@@ -5,7 +5,7 @@
 # Table name: inboxes
 #
 #  id                            :integer          not null, primary key
-#  allow_messages_after_resolved :boolean          default(TRUE)
+#  allow_messages_after_resolved :boolean          default(FALSE)
 #  auto_assignment_config        :jsonb
 #  business_name                 :string
 #  channel_type                  :string

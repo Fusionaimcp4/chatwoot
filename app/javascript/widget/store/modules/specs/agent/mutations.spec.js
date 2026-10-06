@@ -57,5 +57,28 @@ describe('#mutations', () => {
         },
       ]);
     });
+
+    it('does not change agent_bot records during presence updates', () => {
+      const state = {
+        records: [
+          {
+            id: 'agent_bot_1',
+            name: 'Voxe AI',
+            type: 'agent_bot',
+            availability_status: 'online',
+          },
+          {
+            id: 2,
+            name: 'Sarah',
+            availability_status: 'online',
+          },
+        ],
+      };
+
+      mutations.updatePresence(state, { 2: 'offline' });
+
+      expect(state.records[0].availability_status).toBe('online');
+      expect(state.records[1].availability_status).toBe('offline');
+    });
   });
 });

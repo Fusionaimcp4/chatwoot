@@ -504,6 +504,20 @@ describe('availabilityHelpers', () => {
         isOnline(true, '2024-01-15T10:00:00.000Z', 'UTC', workingHours, true)
       ).toBe(true);
     });
+
+    it('should stay online outside business hours when AI is available', () => {
+      const mockDate = new Date('2024-01-15T08:00:00.000Z');
+      mockDate.getDay = vi.fn().mockReturnValue(1);
+      mockDate.getHours = vi.fn().mockReturnValue(8);
+      mockDate.getMinutes = vi.fn().mockReturnValue(0);
+      vi.mocked(utcToZonedTime).mockReturnValue(mockDate);
+
+      const workingHours = [{ dayOfWeek: 1, openHour: 9, closeHour: 17 }];
+
+      expect(isOnline(true, new Date(), 'UTC', workingHours, false, true)).toBe(
+        true
+      );
+    });
   });
 
   describe('Timezone handling', () => {

@@ -32,6 +32,9 @@ const unavailableMessage = useMapGetter('appConfig/getUnavailableMessage');
 
 const {
   currentTime,
+  connectedAgentBot,
+  hasAiAvailable,
+  hasOnlineHumanAgents,
   hasOnlineAgents,
   isOnline,
   inboxConfig,
@@ -46,19 +49,32 @@ const utcOffset = computed(
   () => inboxConfig.value.utcOffset || inboxConfig.value.timezone || 'UTC'
 );
 const replyTime = computed(
-  () => inboxConfig.value.replyTime || 'in_a_few_minutes'
+  () => inboxConfig.value.replyTime || 'in_a_few_seconds'
 );
 
-// If online or in working hours
 const isAvailable = computed(
   () => isOnline.value || (workingHoursEnabled.value && isInWorkingHours.value)
 );
 
-const headerText = computed(() =>
-  isAvailable.value
-    ? availableMessage.value || t('TEAM_AVAILABILITY.ONLINE')
-    : unavailableMessage.value || t('TEAM_AVAILABILITY.OFFLINE')
-);
+const headerText = computed(() => {
+  if (!isAvailable.value) {
+    return unavailableMessage.value || t('TEAM_AVAILABILITY.OFFLINE');
+  }
+
+  if (hasAiAvailable.value && hasOnlineHumanAgents.value) {
+    return t('TEAM_AVAILABILITY.AI_AND_TEAM', {
+      name: connectedAgentBot.value.name,
+    });
+  }
+
+  if (hasAiAvailable.value) {
+    return t('TEAM_AVAILABILITY.AI_ONLY', {
+      name: connectedAgentBot.value.name,
+    });
+  }
+
+  return availableMessage.value || t('TEAM_AVAILABILITY.ONLINE');
+});
 </script>
 
 <template>
@@ -73,7 +89,7 @@ const headerText = computed(() =>
         :utc-offset="utcOffset"
         :working-hours="workingHours"
         :working-hours-enabled="workingHoursEnabled"
-        :has-online-agents="hasOnlineAgents"
+        :has-ai-available="hasAiAvailable"
         :reply-time="replyTime"
         :is-online="isOnline"
         :is-in-working-hours="isInWorkingHours"
@@ -82,6 +98,6 @@ const headerText = computed(() =>
       />
     </div>
 
-    <GroupedAvatars v-if="showAvatars && isOnline" :users="agents" />
+    <GroupedAvatars v-if="showAvatars && hasOnlineAgents" :users="agents" />
   </div>
 </template>

@@ -52,21 +52,54 @@ describe('useAvailability', () => {
 
   describe('with agents', () => {
     it('should handle agents array', () => {
-      const agents = [{ id: 1 }, { id: 2 }];
-      const { availableAgents, hasOnlineAgents } = useAvailability(agents);
+      const agents = [
+        { id: 1, availability_status: 'online' },
+        { id: 2, availability_status: 'offline' },
+      ];
+      const { availableAgents, hasOnlineAgents, hasOnlineHumanAgents } =
+        useAvailability(agents);
 
       expect(availableAgents.value).toEqual(agents);
+      expect(hasOnlineHumanAgents.value).toBe(true);
       expect(hasOnlineAgents.value).toBe(true);
     });
 
     it('should handle reactive agents', () => {
-      const agents = ref([{ id: 1 }]);
+      const agents = ref([{ id: 1, availability_status: 'online' }]);
       const { hasOnlineAgents } = useAvailability(agents);
 
       expect(hasOnlineAgents.value).toBe(true);
 
       agents.value = [];
       expect(hasOnlineAgents.value).toBe(false);
+    });
+
+    it('should pass AI availability separately from human agents', () => {
+      window.chatwootWebChannel = {
+        workingHours: [],
+        workingHoursEnabled: false,
+        timezone: 'UTC',
+        utcOffset: 'UTC',
+        replyTime: 'in_a_few_minutes',
+        connectedAgentBot: {
+          id: 5,
+          name: 'Voxe AI',
+          active: true,
+        },
+      };
+      mockIsOnline.mockReturnValueOnce(true);
+
+      const { hasAiAvailable, isOnline } = useAvailability([]);
+      expect(hasAiAvailable.value).toBe(true);
+      expect(isOnline.value).toBe(true);
+      expect(mockIsOnline).toHaveBeenCalledWith(
+        false,
+        expect.any(Date),
+        'UTC',
+        [],
+        false,
+        true
+      );
     });
   });
 
@@ -96,7 +129,9 @@ describe('useAvailability', () => {
 
     it('should determine online status based on working hours and agents', () => {
       mockIsOnline.mockReturnValueOnce(true);
-      const { isOnline } = useAvailability([{ id: 1 }]);
+      const { isOnline } = useAvailability([
+        { id: 1, availability_status: 'online' },
+      ]);
       const result = isOnline.value;
 
       expect(result).toBe(true);
@@ -105,7 +140,8 @@ describe('useAvailability', () => {
         expect.any(Date),
         '+05:30',
         workingHours,
-        true
+        true,
+        false
       );
     });
   });

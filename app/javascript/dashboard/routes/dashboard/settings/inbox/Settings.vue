@@ -442,7 +442,7 @@ export default {
             welcome_title: this.channelWelcomeTitle || '',
             welcome_tagline: this.channelWelcomeTagline || '',
             selectedFeatureFlags: this.selectedFeatureFlags,
-            reply_time: this.replyTime || 'in_a_few_minutes',
+            reply_time: this.replyTime || 'in_a_few_seconds',
             continuity_via_email: this.continuityViaEmail,
           },
         };
@@ -686,6 +686,13 @@ export default {
           <label v-if="isAWebWidgetInbox" class="pb-4">
             {{ $t('INBOX_MGMT.ADD.WEBSITE_CHANNEL.REPLY_TIME.TITLE') }}
             <select v-model="replyTime">
+              <option key="in_a_few_seconds" value="in_a_few_seconds">
+                {{
+                  $t(
+                    'INBOX_MGMT.ADD.WEBSITE_CHANNEL.REPLY_TIME.IN_A_FEW_SECONDS'
+                  )
+                }}
+              </option>
               <option key="in_a_few_minutes" value="in_a_few_minutes">
                 {{
                   $t(

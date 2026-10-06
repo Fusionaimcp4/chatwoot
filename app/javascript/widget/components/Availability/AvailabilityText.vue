@@ -23,7 +23,7 @@ const props = defineProps({
   },
   replyTime: {
     type: String,
-    default: 'in_a_few_minutes',
+    default: 'in_a_few_seconds',
   },
   isOnline: {
     type: Boolean,
@@ -32,6 +32,10 @@ const props = defineProps({
   isInWorkingHours: {
     type: Boolean,
     required: true,
+  },
+  hasAiAvailable: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -111,8 +115,13 @@ const formattedOpeningTime = computed(() => {
 
 <template>
   <span>
+    <!-- AI is available 24/7; human schedule sublines apply only without AI -->
+    <template v-if="hasAiAvailable">
+      {{ replyTimeMessage }}
+    </template>
+
     <!-- 1. If currently in working hours, show reply time -->
-    <template v-if="isInWorkingHours">
+    <template v-else-if="isInWorkingHours">
       {{ replyTimeMessage }}
     </template>
 
