@@ -13,10 +13,20 @@ import {
 import { ON_CONVERSATION_CREATED } from 'widget/constants/widgetBusEvents';
 import { createTemporaryMessage, getNonDeletedMessages } from './helpers';
 import { emitter } from 'shared/helpers/mitt';
+import { awaitWithTimeout } from 'widget/helpers/awaitWithTimeout';
+
+const ensureVisitorTimezone = async dispatch => {
+  await awaitWithTimeout(
+    dispatch('contacts/ensureTimezone', null, { root: true }),
+    2000
+  );
+};
+
 export const actions = {
   createConversation: async ({ commit, dispatch }, params) => {
     commit('setConversationUIFlag', { isCreating: true });
     try {
+      await ensureVisitorTimezone(dispatch);
       const { data } = await createConversationAPI(params);
       const { messages } = data;
       const [message = {}] = messages;
@@ -35,12 +45,13 @@ export const actions = {
     const message = createTemporaryMessage({ content, replyTo });
     dispatch('sendMessageWithData', message);
   },
-  sendMessageWithData: async ({ commit }, message) => {
+  sendMessageWithData: async ({ commit, dispatch }, message) => {
     const { id, content, replyTo, meta = {} } = message;
 
     commit('pushMessageToConversation', message);
     commit('updateMessageMeta', { id, meta: { ...meta, error: '' } });
     try {
+      await ensureVisitorTimezone(dispatch);
       const { data } = await sendMessageAPI(content, replyTo);
 
       // [VITE] Don't delete this manually, since `pushMessageToConversation` does the replacement for us anyway
@@ -59,7 +70,7 @@ export const actions = {
     commit('setLastMessageId');
   },
 
-  sendAttachment: async ({ commit }, params) => {
+  sendAttachment: async ({ commit, dispatch }, params) => {
     const {
       attachment: { thumbUrl, fileType },
       meta = {},
@@ -76,6 +87,7 @@ export const actions = {
     });
     commit('pushMessageToConversation', tempMessage);
     try {
+      await ensureVisitorTimezone(dispatch);
       const { data } = await sendAttachmentAPI(params);
       commit('updateAttachmentMessageStatus', {
         message: data,

@@ -103,6 +103,9 @@ export default {
       this.fetchOldConversations();
       this.fetchAvailableAgents(websiteToken);
       this.setLocale(getLocale(window.location.search));
+      this.$store
+        .dispatch('contacts/get')
+        .then(() => this.$store.dispatch('contacts/ensureTimezone'));
     }
     if (this.isRNWebView) {
       this.registerListeners();
@@ -277,7 +280,9 @@ export default {
           this.fetchOldConversations().then(() => this.setUnreadView());
           this.fetchAvailableAgents(websiteToken);
           this.setAppConfig(message);
-          this.$store.dispatch('contacts/get');
+          this.$store
+            .dispatch('contacts/get')
+            .then(() => this.$store.dispatch('contacts/ensureTimezone'));
           this.setCampaignReadData(message.campaignsSnoozedTill);
         } else if (message.event === 'widget-visible') {
           this.scrollConversationToBottom();

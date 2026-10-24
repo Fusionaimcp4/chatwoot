@@ -31,10 +31,14 @@ describe('#actions', () => {
           search: '?param=1',
         },
       }));
+      dispatch.mockResolvedValue(undefined);
       await actions.createConversation(
-        { commit },
+        { commit, dispatch },
         { contact: {}, message: 'This is a test message' }
       );
+      expect(dispatch).toHaveBeenCalledWith('contacts/ensureTimezone', null, {
+        root: true,
+      });
       expect(commit.mock.calls).toEqual([
         ['setConversationUIFlag', { isCreating: true }],
         [
