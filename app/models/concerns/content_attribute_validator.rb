@@ -4,6 +4,8 @@ class ContentAttributeValidator < ActiveModel::Validator
   ALLOWED_CARD_ITEM_ACTION_KEYS = [:text, :type, :payload, :uri].freeze
   ALLOWED_FORM_ITEM_KEYS = [:type, :placeholder, :label, :name, :options, :default, :required, :pattern, :title, :pattern_error].freeze
   ALLOWED_ARTICLE_KEYS = [:title, :description, :link].freeze
+  ALLOWED_CALENDAR_ITEM_KEYS = [:date, :date_label, :slots].freeze
+  ALLOWED_CALENDAR_SLOT_KEYS = [:title, :value, :start, :end].freeze
 
   def validate(record)
     case record.content_type
@@ -20,6 +22,8 @@ class ContentAttributeValidator < ActiveModel::Validator
     when 'article'
       validate_items!(record)
       validate_item_attributes!(record, ALLOWED_ARTICLE_KEYS)
+    when 'input_calendar'
+      validate_calendar_items!(record)
     end
   end
 
@@ -48,5 +52,40 @@ class ContentAttributeValidator < ActiveModel::Validator
     item_action_keys = record.items.collect { |item| item[:actions].collect(&:keys) }
     invalid_keys = item_action_keys.flatten.compact.map(&:to_sym) - ALLOWED_CARD_ITEM_ACTION_KEYS
     record.errors.add(:content_attributes, "contains invalid keys for actions:  #{invalid_keys}") if invalid_keys.present?
+  end
+
+  def validate_calendar_items!(record)
+    validate_items!(record)
+    return if record.errors[:content_attributes].present?
+
+    validate_item_attributes!(record, ALLOWED_CALENDAR_ITEM_KEYS)
+    return if record.errors[:content_attributes].present?
+
+    record.items.each do |item|
+      slots = item[:slots] || item['slots']
+      if slots.blank? || !slots.is_a?(Array)
+        record.errors.add(:content_attributes, 'calendar items must include a slots array')
+        next
+      end
+
+      slots.each do |slot|
+        unless slot.is_a?(Hash)
+          record.errors.add(:content_attributes, 'calendar slots must be hashes')
+          next
+        end
+
+        slot_keys = slot.keys.map(&:to_sym)
+        invalid_keys = slot_keys - ALLOWED_CALENDAR_SLOT_KEYS
+        if invalid_keys.present?
+          record.errors.add(:content_attributes, "contains invalid keys for calendar slots : #{invalid_keys}")
+        end
+
+        title = slot[:title] || slot['title']
+        value = slot[:value] || slot['value']
+        if title.blank? || value.blank?
+          record.errors.add(:content_attributes, 'calendar slots require title and value')
+        end
+      end
+    end
   end
 end

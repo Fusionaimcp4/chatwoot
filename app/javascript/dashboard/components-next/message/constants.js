@@ -65,6 +65,7 @@ export const CONTENT_TYPES = {
   INTEGRATIONS: 'integrations',
   STICKER: 'sticker',
   VOICE_CALL: 'voice_call',
+  INPUT_CALENDAR: 'input_calendar',
 };
 
 export const MEDIA_TYPES = [

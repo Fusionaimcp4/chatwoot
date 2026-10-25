@@ -7,6 +7,7 @@ import ChatArticle from './template/Article.vue';
 import EmailInput from './template/EmailInput.vue';
 import CustomerSatisfaction from 'shared/components/CustomerSatisfaction.vue';
 import IntegrationCard from './template/IntegrationCard.vue';
+import AppointmentBooking from './AppointmentBooking.vue';
 import configMixin from '../mixins/configMixin';
 import { mapGetters } from 'vuex';
 
@@ -20,6 +21,7 @@ export default {
     EmailInput,
     CustomerSatisfaction,
     IntegrationCard,
+    AppointmentBooking,
   },
   mixins: [configMixin],
   props: {
@@ -70,6 +72,9 @@ export default {
     isIntegrations() {
       return this.contentType === 'integrations';
     },
+    isCalendar() {
+      return this.contentType === 'input_calendar';
+    },
     isExpandedWidgetLayout() {
       const layout =
         this.storedWidgetLayout ||
@@ -106,10 +111,15 @@ export default {
 </script>
 
 <template>
-  <div class="chat-bubble-wrap" :class="{ 'w-full': isCards }">
+  <div class="chat-bubble-wrap" :class="{ 'w-full': isCards || isCalendar }">
     <div
       v-if="
-        !isCards && !isOptions && !isForm && !isArticle && !isCards && !isCSAT
+        !isCards &&
+        !isOptions &&
+        !isForm &&
+        !isArticle &&
+        !isCSAT &&
+        !isCalendar
       "
       class="chat-bubble agent bg-n-background dark:bg-n-solid-3 text-n-slate-12"
     >
@@ -161,6 +171,12 @@ export default {
     <div v-if="isArticle">
       <ChatArticle :items="messageContentAttributes.items" />
     </div>
+    <AppointmentBooking
+      v-if="isCalendar"
+      :message-id="messageId"
+      :message-content="message"
+      :message-content-attributes="messageContentAttributes"
+    />
     <CustomerSatisfaction
       v-if="isCSAT"
       :message-content-attributes="messageContentAttributes.submitted_values"

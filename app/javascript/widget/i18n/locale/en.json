@@ -165,6 +165,26 @@
     "FIND_SIMILAR": "Find similar products",
     "ADD_TO_CART": "Add to cart"
   },
+  "APPOINTMENT_BOOKING": {
+    "DATE_LABEL": "Date",
+    "TIME_LABEL": "Time",
+    "EMAIL_LABEL": "Email",
+    "EMAIL_PLACEHOLDER": "you{'@'}example.com",
+    "EMAIL_REQUIRED": "Please enter a valid email address.",
+    "NAME_LABEL": "Name (optional)",
+    "NAME_PLACEHOLDER": "Your name",
+    "REASON_LABEL": "Reason for meeting (optional)",
+    "REASON_PLACEHOLDER": "What would you like to discuss?",
+    "TIMEZONE_LABEL": "Times shown in {timezone}",
+    "CONFIRM": "Confirm Appointment",
+    "DISMISS": "Dismiss",
+    "SUBMITTING": "Submitting…",
+    "SUBMIT_ERROR": "Something went wrong. Please try again.",
+    "EMPTY": "No appointment times are available.",
+    "STATUS_SUBMITTED": "Appointment request submitted.",
+    "STATUS_DISMISSED": "Appointment options dismissed.",
+    "STATUS_SUPERSEDED": "Newer availability is shown below."
+  },
   "HEADER": {
     "BACK": "Back",
     "CART": "Cart",

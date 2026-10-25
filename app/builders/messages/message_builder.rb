@@ -159,11 +159,20 @@ class Messages::MessageBuilder
       private: @private,
       sender: sender,
       content_type: @params[:content_type],
-      items: @items,
-      in_reply_to: @in_reply_to,
+      content_attributes: build_content_attributes,
       echo_id: @params[:echo_id],
       source_id: @params[:source_id]
     }.merge(external_created_at).merge(automation_rule_id).merge(campaign_id).merge(template_params)
+  end
+
+  # Preserve the full content_attributes payload (e.g. calendar timezone/prefill)
+  # instead of only copying items / in_reply_to store accessors.
+  def build_content_attributes
+    attrs = content_attributes.is_a?(Hash) ? content_attributes.deep_dup : {}
+    attrs = attrs.with_indifferent_access
+    attrs[:items] = @items if @items.present?
+    attrs[:in_reply_to] = @in_reply_to if @in_reply_to.present?
+    attrs
   end
 
   def email_inbox?

@@ -46,6 +46,9 @@ export default {
   },
   computed: {
     shouldDisplayAgentMessage() {
+      if (this.contentType === 'input_calendar') {
+        return true;
+      }
       if (
         this.contentType === 'input_select' &&
         this.messageContentAttributes.submitted_values &&
@@ -95,7 +98,7 @@ export default {
       return (
         this.messageContentAttributes.submitted_email ||
         (this.messageContentAttributes.submitted_values &&
-          !['form', 'input_csat'].includes(this.contentType))
+          !['form', 'input_csat', 'input_calendar'].includes(this.contentType))
       );
     },
     responseMessage() {
@@ -200,6 +203,7 @@ export default {
             :class="{
               'min-w-0 w-full':
                 contentType === 'cards' ||
+                contentType === 'input_calendar' ||
                 (contentType === 'form' &&
                   !messageContentAttributes?.submitted_values),
             }"
